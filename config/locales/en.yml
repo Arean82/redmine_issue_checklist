@@ -14,7 +14,10 @@ en:
   label_checklist_category_edit: Edit checklist category
   label_checklist_apply_template: Apply template
   label_checklist_template_items: Checklist items
-  text_checklist_template_items_info: One item per line. Prefix with '#' to define a section header.
+  text_checklist_template_items_info: One item per line. Prefix with '#' to define a bold section header.
+  text_checklist_tracker_info: Automatically applied to new issues when a tracker is selected and template is set to default.
+  text_checklist_is_default_info: Automatically load this template on new issues
+  text_checklist_is_public_info: Visible to all project members
   text_checklist_input_placeholder: Add new checklist item...
   text_checklist_quick_add_placeholder: Quick-add checklist task or section...
   text_checklist_section_info: Make this item a bold section header

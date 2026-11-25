@@ -1,9 +1,30 @@
 <div class="box tabular">
-  <p><%= f.text_field :name, required: true, size: 60 %></p>
-  <p><%= f.select :category_id, options_from_collection_for_select(@categories, :id, :name, @template.category_id), include_blank: true %></p>
-  <p><%= f.select :tracker_id, options_from_collection_for_select(Tracker.order(:position), :id, :name, @template.tracker_id), include_blank: l(:label_all) %></p>
-  <p><%= f.check_box :is_default %></p>
-  <p><%= f.check_box :is_public %></p>
+  <p>
+    <%= f.label :name, l(:field_name) %><span class="required"> *</span>
+    <%= f.text_field :name, required: true, size: 60 %>
+  </p>
+  <p>
+    <%= f.label :category_id, l(:field_category) %>
+    <%= f.select :category_id, options_from_collection_for_select(@categories, :id, :name, @template.category_id), include_blank: "--- #{l(:label_none)} ---" %>
+    <% if User.current.admin? %>
+      <%= link_to l(:label_checklist_category_new), new_checklist_template_category_path, class: 'icon icon-add', style: 'margin-left: 8px;' %>
+    <% end %>
+  </p>
+  <p>
+    <%= f.label :tracker_id, l(:field_tracker) %>
+    <%= f.select :tracker_id, options_from_collection_for_select(Tracker.order(:position), :id, :name, @template.tracker_id), include_blank: l(:label_all) %>
+    <em class="info"><%= l(:text_checklist_tracker_info) %></em>
+  </p>
+  <p>
+    <%= f.label :is_default, l(:field_is_default) %>
+    <%= f.check_box :is_default %>
+    <span class="info"><%= l(:text_checklist_is_default_info) %></span>
+  </p>
+  <p>
+    <%= f.label :is_public, l(:field_is_public) %>
+    <%= f.check_box :is_public %>
+    <span class="info"><%= l(:text_checklist_is_public_info) %></span>
+  </p>
   <p>
     <%= f.label :template_items, l(:label_checklist_template_items) %>
     <%= f.text_area :template_items, rows: 10, cols: 60, placeholder: "Item 1\n# Section Header\nItem 2" %>

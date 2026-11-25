@@ -16,7 +16,7 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 - **Assignees & Due Dates per Item**: Assign team members and deadlines to individual checklist tasks with overdue indicators.
 - **Visual Progress Bar & Filter**: Real-time progress bar reflecting completion percentage and a quick "Hide Completed" toggle button.
 - **Checklist Sections & Groups**: Group checklist items into distinct logical sections by prefixing headers with `#`.
-- **Checklist Templates & Categories**: Create reusable checklist templates organized by category for project-wide or global use.
+- **Checklist Templates & Categories**: Create reusable checklist templates organized by category for project-wide or global use, with a direct 1-click category creator inside the template form.
 - **Automatic Checklists by Tracker**: Designate default checklist templates for specific trackers (e.g. *Bug*, *Feature*, *QA Task*) so newly created issues automatically inherit the checklist.
 - **Checklist Cloning & Export**: Quick-clone checklist items from any other issue, or export checklists directly to Markdown (`.md`).
 - **REST API Endpoints**:
@@ -65,6 +65,38 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 
 ---
 
+## Configuration & Usage Manual
+
+### 1. Permissions
+Navigate to **Administration > Roles and permissions** and configure:
+- `View checklist items`: Allows seeing checklists on issues.
+- `Check/uncheck checklist items`: Allows marking checklist tasks done or open.
+- `Edit checklist items`: Allows creating, deleting, quick-adding, and managing templates.
+
+### 2. Checklist Templates & Categories
+- **Global Management**: Go to **Administration > Checklist Templates** (or **Checklist Categories**).
+- **Project-Level**: Open any project's **Checklist Templates** tab to configure project-scoped templates.
+- **Creating a Template**:
+  - **Name**: Name of the checklist template.
+  - **Category**: Group templates in dropdown menus. You can click the `+ New category` link right next to the field to create one instantly.
+  - **Tracker**: Select a tracker (e.g. *Bug*, *Feature*) or leave as *All*.
+  - **Default**: When checked, newly created issues of this Tracker will automatically be populated with these checklist items.
+  - **Public**: Makes the template available across all project members.
+  - **Checklist items**: Enter one item per line. Prefix any line with `#` to turn it into a bold section divider.
+
+### 3. Quick-Add on Issue Page
+On any issue page:
+- Type task text into the inline quick-add input at the bottom of the checklist.
+- Optionally select an **Assignee** and **Due Date**.
+- Check **Section** (or type `# Section Name`) to create a bold section divider.
+- Press **Add** or hit Enter to add immediately via AJAX without reloading the issue.
+
+### 4. Issue Filters & Columns
+- In the issues list (`/issues`), click **Options** and add **Checklist** to the selected columns to see live completion counters (`3/7`).
+- Under **Add filter**, select **Checklist status** (*All items done*, *Has open items*, *Empty checklist*) or **Checklist item contains** to search tasks.
+
+---
+
 ## REST API Example
 
 ```bash
@@ -72,7 +104,7 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 curl -v -H "Content-Type: application/json" -X GET \
   http://localhost:3300/issues/1/checklists.json?key=<YOUR_API_KEY>
 
-# Add a new checklist item
+# Add a new checklist item with assignee and due date
 curl -v -H "Content-Type: application/json" -X POST \
   -d '{"subject":"Run regression tests","assigned_to_id":1,"due_date":"2026-12-01"}' \
   http://localhost:3300/issues/1/checklists.json?key=<YOUR_API_KEY>
