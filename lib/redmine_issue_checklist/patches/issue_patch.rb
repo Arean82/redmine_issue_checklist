@@ -67,3 +67,7 @@ module RedmineIssueChecklist
     end
   end
 end
+
+unless Issue.included_modules.include?(RedmineIssueChecklist::Patches::IssuePatch)
+  Issue.send(:include, RedmineIssueChecklist::Patches::IssuePatch)
+end

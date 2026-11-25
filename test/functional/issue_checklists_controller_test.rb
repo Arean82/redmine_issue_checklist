@@ -12,6 +12,8 @@ class IssueChecklistsControllerTest < ActionController::TestCase
            :trackers,
            :projects_trackers,
            :issue_categories,
+           :enumerations,
+           :time_entries,
            :enabled_modules
 
   def setup
@@ -41,6 +43,24 @@ class IssueChecklistsControllerTest < ActionController::TestCase
     assert_response :success
     assert_includes @issue.checklist.reload.map(&:subject), 'Task A'
     assert_includes @issue.checklist.map(&:subject), 'Section B'
+  end
+
+  def test_log_time_for_checklist_item
+    activity = TimeEntryActivity.shared.active.first
+    assert_difference 'TimeEntry.count', 1 do
+      post :log_time, params: {
+        issue_id: @issue.id,
+        checklist_item_id: @item.id,
+        hours: '2.5',
+        activity_id: activity.id,
+        comments: 'Worked on checklist task'
+      }
+    end
+    assert_redirected_to issue_path(@issue)
+    entry = TimeEntry.last
+    assert_equal 2.5, entry.hours
+    assert_equal @issue, entry.issue
+    assert_equal 'Worked on checklist task', entry.comments
   end
 
   def test_export_markdown

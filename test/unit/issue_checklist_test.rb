@@ -40,6 +40,22 @@ class IssueChecklistTest < ActiveSupport::TestCase
     assert_includes item.info, "(Assignee: #{@user.name})"
   end
 
+  def test_checklist_progress_bar_calculation_in_query
+    query = IssueQuery.new
+    col = query.available_columns.find { |c| c.name == :checklist }
+    assert_not_nil col
+
+    # Clean checklist on issue
+    @issue.checklist.destroy_all
+    @issue.checklist.create!(subject: 'T1', is_done: true, is_section: false)
+    @issue.checklist.create!(subject: 'T2', is_done: false, is_section: false)
+
+    output = query.value_object(@issue, col)
+    assert_includes output, '50%'
+    assert_includes output, '1/2'
+    assert_includes output, 'checklist-table-cell'
+  end
+
   def test_checklist_template_items_parser
     template = ChecklistTemplate.create!(
       name: 'Release Template',
