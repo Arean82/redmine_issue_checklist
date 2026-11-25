@@ -1,14 +1,15 @@
 module RedmineIssueChecklist
-
-  def self.settings()
+  def self.settings
     Setting[:plugin_redmine_issue_checklist].blank? ? {} : Setting[:plugin_redmine_issue_checklist]
   end
-
 end
 
+require_relative 'redmine_issue_checklist/hooks/views_issues_hook'
+require_relative 'redmine_issue_checklist/hooks/model_issue_hook'
+require_relative 'redmine_issue_checklist/patches/issue_patch'
+require_relative 'redmine_issue_checklist/patches/issues_controller_patch'
+
 Rails.configuration.to_prepare do
-  require_dependency 'redmine_issue_checklist/hooks/views_issues_hook'
-  require_dependency 'redmine_issue_checklist/hooks/model_issue_hook'
-  require_dependency 'redmine_issue_checklist/patches/issue_patch'
-  require_dependency 'redmine_issue_checklist/patches/issues_controller_patch'
+  Issue.include(RedmineIssueChecklist::Patches::IssuePatch) unless Issue.included_modules.include?(RedmineIssueChecklist::Patches::IssuePatch)
+  IssuesController.include(RedmineIssueChecklist::Patches::IssuesControllerPatch) unless IssuesController.included_modules.include?(RedmineIssueChecklist::Patches::IssuesControllerPatch)
 end

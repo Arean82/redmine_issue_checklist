@@ -1,8 +1,8 @@
-class IssueChecklist < ActiveRecord::Base
+class IssueChecklist < ApplicationRecord
   belongs_to :issue
-  belongs_to :author, class_name: 'User', foreign_key: 'author_id'
+  belongs_to :author, class_name: 'User', foreign_key: 'author_id', optional: true
   has_one :comment, as: :commented, dependent: :delete
-  acts_as_list
+  acts_as_positioned :scope => :issue_id
 
   validates_presence_of :subject
 
