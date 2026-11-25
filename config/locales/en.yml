@@ -1,9 +1,25 @@
-# English strings go here for Rails i18n
 en:
   label_issue_checklist_plural: Checklist
   field_checklist: Checklist
   label_checklist_save_log: Save changes to the issue log
   label_checklist_done_ratio: Automatically change the issue done ratio
   permission_view_checklists: View checklist items
-  permission_done_checklists: Change done ratio based on checklist
+  permission_done_checklists: Check/uncheck checklist items
   permission_edit_checklists: Edit checklist items
+  label_checklist_template_plural: Checklist Templates
+  label_checklist_template_new: New checklist template
+  label_checklist_template_edit: Edit checklist template
+  label_checklist_category_plural: Checklist Categories
+  label_checklist_category_new: New checklist category
+  label_checklist_category_edit: Edit checklist category
+  label_checklist_apply_template: Apply template
+  label_checklist_template_items: Checklist items
+  text_checklist_template_items_info: One item per line. Prefix with '#' to define a section header.
+  text_checklist_input_placeholder: Add new checklist item...
+  label_checklist_add_section: Add section
+  label_checklist_import: Import checklist from text file
+  label_checklist_item_search: Checklist item contains
+  label_checklist_status: Checklist status
+  label_checklist_status_all_done: All items done
+  label_checklist_status_has_undone: Has open items
+  label_checklist_status_empty: Empty checklist

@@ -1,0 +1,31 @@
+<div class="contextual">
+  <%= link_to l(:label_checklist_category_new), new_checklist_template_category_path, class: 'icon icon-add' %>
+</div>
+
+<h2><%= l(:label_checklist_category_plural) %></h2>
+
+<% if @categories.any? %>
+  <table class="list">
+    <thead>
+      <tr>
+        <th><%= l(:field_name) %></th>
+        <th><%= l(:field_position) %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @categories.each do |cat| %>
+        <tr class="<%= cycle('odd', 'even') %>">
+          <td><%= link_to cat.name, edit_checklist_template_category_path(cat) %></td>
+          <td><%= cat.position %></td>
+          <td class="buttons">
+            <%= link_to l(:button_edit), edit_checklist_template_category_path(cat), class: 'icon icon-edit' %>
+            <%= link_to l(:button_delete), checklist_template_category_path(cat), data: { confirm: l(:text_are_you_sure) }, method: :delete, class: 'icon icon-del' %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

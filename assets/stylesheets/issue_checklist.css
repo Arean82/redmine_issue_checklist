@@ -1,45 +1,85 @@
+div#issue_checklist {
+  margin-top: 15px;
+  background-color: #fafbfc;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 12px 16px;
+}
 
-div#issue_checklist ul {
+div#issue_checklist ul.checklist-view-list {
   list-style: none;
   padding-left: 0px;
   margin-bottom: 0px;
+  margin-top: 8px;
 }
 
 div#issue_checklist li {
-  padding-bottom: 10px;
-  margin-left: 10px;
+  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f1f3f5;
 }
 
-input#checklist_item {
+div#issue_checklist li:last-child {
+  border-bottom: none;
+}
+
+div#issue_checklist li.checklist-section-item {
+  margin-top: 10px;
+  font-weight: 600;
+  color: #24292e;
+  border-bottom: 2px solid #e1e4e8;
+  padding-bottom: 4px;
+}
+
+div#issue_checklist li input[type="checkbox"] {
   margin-right: 10px;
+  cursor: pointer;
 }
 
-#issue_checklist a.delete img {
-  vertical-align: top;
-  margin-left: 5px;
+.checklist-stats {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
 }
 
-#issue_checklist li:hover a.delete {
-  opacity: 1;
+.badge-info {
+  background-color: #0366d6;
+  color: #ffffff;
 }
 
-#issue_checklist a.delete {
-  opacity: 0.4;
+.badge-success {
+  background-color: #28a745;
+  color: #ffffff;
 }
 
 span.checklist-item {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  background: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
 }
 
-span.checklist-item.is-done-checklist-item, #issue_checklist_items li.is-done-checklist-item {
+span.checklist-item-section {
+  background: #eef2f7;
+  font-weight: bold;
+  border-left: 4px solid #0366d6;
+}
+
+span.checklist-item.is-done-checklist-item, #issue_checklist_items li.is-done-checklist-item .checklist-item-subject {
   text-decoration: line-through;
-  color: #999;
+  color: #8c959f;
 }
 
 span.checklist-item .delete {
-  margin-left: 2px;
-  opacity: 0.4;
+  float: right;
+  margin-left: 8px;
+  cursor: pointer;
+  opacity: 0.5;
 }
 
 span.checklist-item:hover .delete {
@@ -51,5 +91,20 @@ span.checklist-item input {
 }
 
 #add_checklist_item_input {
-  width: 40%;
+  width: 50%;
+  padding: 4px 8px;
+  border: 1px solid #d1d5da;
+  border-radius: 4px;
+}
+
+.checklist-template-select-box {
+  margin-bottom: 10px;
+}
+
+.checklist-history-old {
+  color: #cb2431;
+}
+
+.checklist-history-new {
+  color: #28a745;
 }

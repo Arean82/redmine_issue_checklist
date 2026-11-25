@@ -1,0 +1,6 @@
+<h2><%= l(:label_checklist_template_edit) %></h2>
+
+<%= form_for @template do |f| %>
+  <%= render partial: 'form', locals: { f: f } %>
+  <%= f.submit l(:button_save) %>
+<% end %>

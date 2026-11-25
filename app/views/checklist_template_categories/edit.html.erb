@@ -1,0 +1,9 @@
+<h2><%= l(:label_checklist_category_edit) %></h2>
+
+<%= form_for @category do |f| %>
+  <div class="box tabular">
+    <p><%= f.text_field :name, required: true, size: 60 %></p>
+    <p><%= f.number_field :position %></p>
+  </div>
+  <%= f.submit l(:button_save) %>
+<% end %>

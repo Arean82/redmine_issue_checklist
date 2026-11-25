@@ -1,30 +1,44 @@
-# Redmine Issue Checklist Plugin (Enterprise Edition)
+# Redmine Issue Checklist Plugin (PRO Edition)
 
-[![Redmine](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x%20%7C%207.x-blue.svg)](https://www.redmine.org/)
-[![Ruby](https://img.shields.io/badge/Ruby-3.x%20%7C%204.x-red.svg)](https://www.ruby-lang.org/)
-[![License: GPL-2.0](https://img.shields.io/badge/License-GPL--2.0-green.svg)](GPL.txt)
+[![Redmine 5.x / 6.x / 7.0+](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x%20%7C%207.0%2B-blue.svg)](http://www.redmine.org)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](GPL.txt)
 
-An industrial-strength checklist management plugin for Redmine issues. Enables teams to break down complex tasks into lightweight actionable checklist items with drag-and-drop reordering, progress-based done ratio calculations, and audit journal logging.
+Interactive, enterprise-grade checklist management for Redmine issues with template workflows, tracker automation, custom fields, query filtering, audit logging, and email notification delivery.
 
-*Maintained and modernized by **Arean Narrayan** (<arean@synorastudio.in>)*  
-*Original plugin by [Kirill Bezrukov](http://www.redminecrm.com/projects/checklist/pages/1) & [Danil Tashkinov](https://github.com/nodecarter).*
+Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Arean82)).
 
 ---
 
-## 🌟 Key Features
+## Features (PRO Edition)
 
-- **Interactive Issue Checklists:** Add checklist items directly in the issue edit and show views with instantaneous AJAX toggling.
-- **Drag-and-Drop Reordering:** Reorder items easily; uses native Redmine `acts_as_positioned` positioning engine (`position` scoped to `issue_id`).
-- **Done Ratio Synchronization:** Optionally updates the parent issue's `% Done` based on the percentage of completed checklist items.
-- **Journal Audit History:** Tracks added, completed, and removed checklist items in the issue history log.
-- **Role-Based Permissions:** Granular permissions under *Issue tracking* (`view_checklists`, `done_checklists`, `edit_checklists`).
-- **Rails 7, Ruby 4 & Zeitwerk Ready:** Uses `ApplicationRecord`, native `acts_as_positioned`, and `Rails.configuration.to_prepare`.
+- **Interactive Issue Checklists**: Add, sort, toggle, and delete checklist items directly on issues with real-time UI updates.
+- **Checklist Sections & Groups**: Group checklist items into distinct logical sections by prefixing headers with `#`.
+- **Checklist Templates & Categories**: Create reusable checklist templates organized by category for project-wide or global use.
+- **Automatic Checklists by Tracker**: Designate default checklist templates for specific trackers (e.g. *Bug*, *Feature*, *QA Task*) so newly created issues automatically inherit the checklist.
+- **Checklist Custom Field**: Native checklist custom field support (`IssueChecklistCustomFieldFormat`) for structured forms.
+- **Issue Query Columns & Filters**:
+  - Adds a **Checklist** column in the issues list (`/issues`) displaying task progress (`completed/total`).
+  - Search filter: **Checklist item contains** text search.
+  - Status filter: **Checklist status** (*All items done*, *Has open items*, *Empty checklist*).
+- **Change History & Audit Trail**: Full journal logging when checklist items are toggled, added, or modified.
+- **Email Notifications**: Automatically dispatches notification emails to assignees and watchers on checklist changes.
+- **Automatic Done Ratio**: Optionally recalculate the issue `% Done` automatically based on completed items.
+- **Import/Export**: Drag-and-drop or select plain-text files to batch-import checklist lines.
 
 ---
 
-## 🚀 Installation
+## Compatibility
 
-1. Clone or copy into your Redmine `plugins` directory:
+- Redmine 5.0+, 6.0+, and 7.0+
+- Ruby 3.2+ / 4.0+
+- Rails 7.x / 8.x (Zeitwerk autoloading compliant)
+- PostgreSQL, MySQL, SQLite3
+
+---
+
+## Installation
+
+1. Clone the repository into your Redmine `plugins` directory:
    ```bash
    cd /data/redmine/plugins
    git clone https://github.com/Arean82/redmine_issue_checklist.git
@@ -32,28 +46,43 @@ An industrial-strength checklist management plugin for Redmine issues. Enables t
 
 2. Run plugin database migrations:
    ```bash
-   RAILS_ENV=production bin/rails redmine:plugins:migrate
+   bundle exec rake redmine:plugins:migrate RAILS_ENV=production
    ```
 
-3. Restart your Redmine application server:
+3. Restart your Redmine application:
    ```bash
    sudo systemctl restart redmine
+   # or
+   touch tmp/restart.txt
    ```
 
-4. Configure options under **Administration -> Plugins -> Redmine Issue Checklist Plugin -> Configure**.
+---
+
+## Configuration & Usage
+
+### 1. Permissions
+Navigate to **Administration > Roles and permissions** and configure:
+- `View checklist items`
+- `Check/uncheck checklist items`
+- `Edit checklist items`
+
+### 2. Checklist Templates & Categories
+- **Global Management**: Go to **Administration > Checklist Templates** (or **Checklist Categories**).
+- **Project-Level**: Open the project tab **Checklist Templates** to configure project-scoped templates.
+- **Tracker Default**: Check **Default** and pick a **Tracker** (e.g. *Bug*) to automatically populate newly created issues of that tracker.
+
+### 3. Issue Filters & Columns
+- In the issues list (`/issues`), click **Options** and add **Checklist** to the selected columns.
+- Under **Add filter**, select **Checklist status** or **Checklist item contains**.
 
 ---
 
-## 👤 Author & Support
+## Author & Maintainer
 
-- **Author & Maintainer:** Arean Narrayan  
-- **Email:** [arean@synorastudio.in](mailto:arean@synorastudio.in)  
-- **GitHub:** [@Arean82](https://github.com/Arean82)  
-- **Repository:** [https://github.com/Arean82/redmine_issue_checklist](https://github.com/Arean82/redmine_issue_checklist)
+- **Arean Narrayan**
+- GitHub: [@Arean82](https://github.com/Arean82)
+- Email: [arean@synorastudio.in](mailto:arean@synorastudio.in)
 
----
+## License
 
-## 📄 License
-
-Distributed under the **GNU General Public License v2 (GPL-2.0)**.  
-Copyright (c) 2011–2018 Kirill Bezrukov, Danil Tashkinov. Copyright (c) 2024–2026 Arean Narrayan (<arean@synorastudio.in>).
+This plugin is licensed under the GNU General Public License v3 (GPL-3.0). See [GPL.txt](file:///data/redmine/plugins/redmine_issue_checklist/GPL.txt) for details.

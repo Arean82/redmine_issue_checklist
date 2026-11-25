@@ -1,30 +1,50 @@
+<%
+  available_templates = ChecklistTemplate.public_templates
+  available_templates = available_templates.for_project(@project) if @project
+%>
 <%= fields_for :issue, issue do |f| -%>
   <div class="tabular">
     <p id="issue_checklist_form">
       <label><%= l(:label_issue_checklist_plural) %></label>
+      
+      <% if available_templates.any? %>
+        <span class="checklist-template-select-box" style="margin-bottom: 8px; display: inline-block;">
+          <select id="checklist_template_selector" class="small">
+            <option value=""><%= l(:label_checklist_apply_template) %>...</option>
+            <% available_templates.group_by(&:category).each do |cat, tpls| %>
+              <optgroup label="<%= cat ? cat.name : l(:label_other) %>">
+                <% tpls.each do |tpl| %>
+                  <option value="<%= tpl.id %>" data-items="<%= tpl.items.to_json %>"><%= tpl.name %></option>
+                <% end %>
+              </optgroup>
+            <% end %>
+          </select>
+          <button type="button" id="apply_checklist_template_btn" class="button-small"><%= l(:button_apply) %></button>
+        </span>
+      <% end %>
+
       <span id="checklist_form_items"> </span>
+      <br/>
       <%= text_field_tag 'new_checklist', '',
-          id: 'add_checklist_item_input' %>
+          id: 'add_checklist_item_input', placeholder: l(:text_checklist_input_placeholder) %>
       <%= link_to '', '#',
           id:    'add_checklist_item_button',
-          class: 'tag-add icon icon-add' %>
+          class: 'tag-add icon icon-add', title: l(:button_add) %>
+      <%= link_to l(:label_checklist_add_section), '#',
+          id:    'add_checklist_section_button',
+          class: 'icon icon-bullet-black', style: 'margin-left: 8px;' %>
       <%= file_field_tag 'import_checklist',
           id:     'import_checklist_items_input',
-          accept: 'text/plain' %>
+          accept: 'text/plain', title: l(:label_checklist_import) %>
 
       <%= javascript_tag "observeIssueChecklistField('checklist_form_items', 'add_checklist_item_input', 'add_checklist_item_button', 'import_checklist_items_input');" %>
-      <%= javascript_tag "createIssueChecklist(#{@issue.checklist.collect { |cli| { is_done: cli.is_done, subject: cli.subject, id: cli.id } }.to_json.html_safe});" %>
+      <%= javascript_tag "createIssueChecklist(#{@issue.checklist.collect { |cli| { is_done: cli.is_done, subject: cli.subject, id: cli.id, is_section: cli.is_section } }.to_json.html_safe});" %>
     </p>
   </div>
 <% end if User.current.allowed_to?(:edit_checklists, @project) -%>
 
-
 <% content_for :header_tags do %>
-  <% if Redmine::VERSION::MAJOR >= 3 || (Redmine::VERSION::MAJOR == 2 && Redmine::VERSION::MINOR >= 1) %>
-    <%= javascript_include_tag 'jquery.klass.js', plugin: 'redmine_issue_checklist' %>
-    <%= javascript_include_tag 'issue_checklist.jquery.js', plugin: 'redmine_issue_checklist' %>
-  <% else %>
-    <%= javascript_include_tag 'issue_checklist.prototype.js', plugin: 'redmine_issue_checklist' %>
-  <% end %>
+  <%= javascript_include_tag 'jquery.klass.js', plugin: 'redmine_issue_checklist' %>
+  <%= javascript_include_tag 'issue_checklist.jquery.js', plugin: 'redmine_issue_checklist' %>
   <%= stylesheet_link_tag :issue_checklist, plugin: 'redmine_issue_checklist' %>
 <% end %>
