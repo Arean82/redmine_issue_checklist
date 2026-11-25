@@ -4,7 +4,12 @@ class ChecklistTemplate < ApplicationRecord
   belongs_to :user, optional: true
   belongs_to :tracker, optional: true
 
-  serialize :template_items, coder: YAML
+  # Rails 7.1+ uses `coder: YAML`; Rails 6.x / Redmine 5 uses `serialize :col, YAML`
+  if Rails::VERSION::MAJOR >= 7 && Rails::VERSION::MINOR >= 1
+    serialize :template_items, coder: YAML
+  else
+    serialize :template_items, YAML
+  end
 
   validates :name, presence: true
 

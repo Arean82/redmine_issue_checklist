@@ -1,10 +1,17 @@
 require 'redmine'
 
+# Backward-compatibility fallback for Redmine 5 (Rails 6.x)
+if Redmine::VERSION::MAJOR < 6 && !defined?(ApplicationRecord)
+  class ApplicationRecord < ActiveRecord::Base
+    self.abstract_class = true
+  end
+end
+
 Redmine::Plugin.register :redmine_issue_checklist do
   name 'Redmine Issue Checklist Plugin (PRO Edition)'
   author 'Arean Narrayan'
   author_url 'https://github.com/Arean82'
-  description 'Enterprise interactive issue checklist plugin with templates, categories, auto-tracker checklists, custom fields, issue query filters, change history audit trail, and email notifications.'
+  description 'Enterprise interactive issue checklist plugin with templates, categories, auto-tracker checklists, custom fields, issue query filters, change history audit trail, email notifications, sub-task assignees, and REST API.'
   version '4.0.0'
   url 'https://github.com/Arean82/redmine_issue_checklist'
   requires_redmine version_or_higher: '5.0.0'
