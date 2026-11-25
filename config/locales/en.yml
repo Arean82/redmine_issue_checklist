@@ -44,3 +44,5 @@ en:
   label_checklist_clone_from_issue: Copy checklist from issue
   notice_checklist_cloned_successfully: Checklist items copied successfully.
   error_no_checklist_to_clone: Source issue does not have any checklist items.
+  notice_time_logged_successfully: "%{hours} hours logged successfully for this checklist task."
+  error_invalid_spent_hours: "Please enter valid hours to log."

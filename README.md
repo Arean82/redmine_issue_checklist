@@ -3,7 +3,7 @@
 [![Redmine 5.x / 6.x / 7.0+](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x%20%7C%207.0%2B-blue.svg)](http://www.redmine.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](GPL.txt)
 
-Enterprise issue checklist and task breakdown plugin for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters, journal audit history, email notifications, sub-task assignees, due dates, inline quick-add, interactive Markdown/TXT file import with live preview, and full REST API support.
+Enterprise issue checklist and task breakdown plugin for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters with visual progress bars, journal audit history, email notifications, sub-task assignees, due dates, per-item spent time logging, inline quick-add, interactive Markdown/TXT file import with live preview, and full REST API support.
 
 Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Arean82)).
 
@@ -13,6 +13,8 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 
 - **Interactive Issue Checklists**: Add, sort, toggle, and delete checklist items directly on issues with real-time UI updates.
 - **Direct Inline Quick-Add**: Add checklist items and section headers directly from the issue view with assignees and due dates without opening full edit forms.
+- **Per-Item Spent Time Logging**: Clock icon next to each checklist item to log spent time and activity with comments automatically referencing the task.
+- **Visual Progress Bar in Issue Queries**: Displays a dynamic mini-progress bar (`completed/total` with gradient coloring) directly in the **Checklist** column on `/issues`.
 - **Import from TXT / Markdown (`.md`) with Live Preview**:
   - Upload `.txt` or `.md` files.
   - Smart-detects task lines (`Item`), Markdown checkboxes (`- [ ]`, `- [x]`), and headers (`#`, `##`) into section headers.
@@ -77,8 +79,18 @@ Navigate to **Administration > Roles and permissions** and configure:
 - `View checklist items`: Allows seeing checklists on issues.
 - `Check/uncheck checklist items`: Allows marking checklist tasks done or open.
 - `Edit checklist items`: Allows creating, deleting, quick-adding, importing, and managing templates.
+- `Log time`: Allows logging spent time against individual checklist items.
 
-### 2. Import from File with Preview
+### 2. Logging Time on Checklist Items
+- Click the small clock icon next to any checklist item.
+- Enter hours spent, select an activity, date, and comments.
+- Submitting automatically logs the time entry to the parent issue with the task name.
+
+### 3. Visual Progress Bar on Issues List
+- Go to `/issues`, click **Options**, and add the **Checklist** column.
+- The column will display an interactive visual progress bar showing completion percentage and counts (`3/7`).
+
+### 4. Import from File with Preview
 1. Click **Import from file...** (`.txt` or `.md`) on an issue or inside the template form.
 2. Select your text or Markdown file.
 3. Review the parsed table:
@@ -87,47 +99,6 @@ Navigate to **Administration > Roles and permissions** and configure:
    - Edit any line or uncheck lines you wish to omit.
    - Choose **Append to existing items** or **Replace existing items**.
 4. Click **Import** to apply immediately.
-
-### 3. Checklist Templates & Categories
-- **Global Management**: Go to **Administration > Checklist Templates** (or **Checklist Categories**).
-- **Project-Level**: Open any project's **Checklist Templates** tab to configure project-scoped templates.
-- **Creating a Template**:
-  - **Name**: Name of the checklist template.
-  - **Category**: Group templates in dropdown menus. You can click the `+ New category` link right next to the field to create one instantly.
-  - **Tracker**: Select a tracker (e.g. *Bug*, *Feature*) or leave as *All*.
-  - **Default**: When checked, newly created issues of this Tracker will automatically be populated with these checklist items.
-  - **Public**: Makes the template available across all project members.
-  - **Checklist items**: Enter one item per line, or click **Import from file (.txt / .md)...** to load tasks with live preview.
-
-### 4. Quick-Add on Issue Page
-On any issue page:
-- Type task text into the inline quick-add input at the bottom of the checklist.
-- Optionally select an **Assignee** and **Due Date**.
-- Check **Section** (or type `# Section Name`) to create a bold section divider.
-- Press **Add** or hit Enter to add immediately via AJAX without reloading the issue.
-
-### 5. Issue Filters & Columns
-- In the issues list (`/issues`), click **Options** and add **Checklist** to the selected columns to see live completion counters (`3/7`).
-- Under **Add filter**, select **Checklist status** (*All items done*, *Has open items*, *Empty checklist*) or **Checklist item contains** to search tasks.
-
----
-
-## REST API Example
-
-```bash
-# List checklist items for an issue
-curl -v -H "Content-Type: application/json" -X GET \
-  http://localhost:3300/issues/1/checklists.json?key=<YOUR_API_KEY>
-
-# Add a new checklist item with assignee and due date
-curl -v -H "Content-Type: application/json" -X POST \
-  -d '{"subject":"Run regression tests","assigned_to_id":1,"due_date":"2026-12-01"}' \
-  http://localhost:3300/issues/1/checklists.json?key=<YOUR_API_KEY>
-
-# Toggle an item done
-curl -v -H "Content-Type: application/json" -X PUT \
-  http://localhost:3300/issues/1/checklists/12/done.json?key=<YOUR_API_KEY>
-```
 
 ---
 

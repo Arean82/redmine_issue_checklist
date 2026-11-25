@@ -14,6 +14,23 @@ function closeChecklistImportModal() {
   parsedImportItems = [];
 }
 
+function openLogTimeModal(itemId, subject) {
+  var issueId = $('#checklist_log_time_form').closest('#issue_checklist').length > 0 ?
+                $('#issue_checklist').closest('body').find('h2:contains("#")').text() : '';
+  
+  $('#log_time_item_title').text(subject);
+  $('#log_time_hours').val('');
+  $('#log_time_comments').val('Checklist: ' + subject);
+  
+  var formAction = window.location.pathname.replace(/\/$/, '') + '/checklists/' + itemId + '/log_time';
+  $('#checklist_log_time_form').attr('action', formAction);
+  $('#checklist_log_time_modal').fadeIn(200);
+}
+
+function closeLogTimeModal() {
+  $('#checklist_log_time_modal').fadeOut(200);
+}
+
 // Smart parser for TXT and Markdown files without using regex
 function parseChecklistText(rawText) {
   var lines = rawText.split("\n");

@@ -22,11 +22,16 @@
     <% end %>
   <% end %>
 
-  <% if User.current.allowed_to?(:edit_checklists, checklist_item.issue.project) %>
-    <span class="checklist-item-actions">
+  <span class="checklist-item-actions">
+    <% if !checklist_item.is_section && User.current.allowed_to?(:log_time, checklist_item.issue.project) %>
+      <a href="#" onclick="openLogTimeModal('<%= checklist_item.id %>', '<%= escape_javascript(checklist_item.subject) %>'); return false;"
+         class="icon icon-time" title="<%= l(:button_log_time) %>"></a>
+    <% end %>
+
+    <% if User.current.allowed_to?(:edit_checklists, checklist_item.issue.project) %>
       <%= link_to '', { controller: 'issue_checklists', action: 'delete', checklist_item_id: checklist_item.id },
                   remote: true, method: :post,
                   class: 'delete icon icon-del', title: l(:button_delete) %>
-    </span>
-  <% end %>
+    <% end %>
+  </span>
 </li>

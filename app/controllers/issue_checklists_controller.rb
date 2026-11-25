@@ -1,6 +1,6 @@
 class IssueChecklistsController < ApplicationController
-  before_action :find_checklist_item, only: [:done, :delete, :update, :destroy]
-  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :index, :create]
+  before_action :find_checklist_item, only: [:done, :delete, :update, :destroy, :log_time]
+  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :log_time, :index, :create]
 
   accept_api_auth :index, :create, :show, :update, :destroy, :done
 
@@ -19,6 +19,39 @@ class IssueChecklistsController < ApplicationController
           only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]
         )
       end
+    end
+  end
+
+  def log_time
+    (render_403; return false) unless User.current.allowed_to?(:log_time, @project)
+
+    hours = params[:hours].to_f
+    if hours > 0
+      comments = params[:comments].presence || "Checklist: #{@checklist_item.subject.strip}"
+      activity_id = params[:activity_id] || TimeEntryActivity.shared.active.first&.id
+
+      time_entry = TimeEntry.new(
+        project: @project,
+        issue: @issue,
+        user: User.current,
+        spent_on: params[:spent_on] || Date.today,
+        hours: hours,
+        activity_id: activity_id,
+        comments: comments
+      )
+
+      if time_entry.save
+        flash[:notice] = l(:notice_time_logged_successfully, hours: hours)
+      else
+        flash[:error] = time_entry.errors.full_messages.join(', ')
+      end
+    else
+      flash[:error] = l(:error_invalid_spent_hours)
+    end
+
+    respond_to do |format|
+      format.js
+      format.html { redirect_to issue_path(@issue) }
     end
   end
 

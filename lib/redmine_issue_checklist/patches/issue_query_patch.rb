@@ -75,7 +75,16 @@ module RedmineIssueChecklist
               ''
             else
               done_count = items.count(&:is_done)
-              "#{done_count}/#{items.count}"
+              total = items.count
+              pct = total > 0 ? (done_count.to_f / total * 100).round : 0
+              bar_color = pct == 100 ? '#28a745' : '#0366d6'
+              
+              "<div class='checklist-table-cell' style='display:flex; align-items:center; gap:6px; min-width:85px;'>" \
+                "<div style='flex-grow:1; background:#e1e4e8; height:6px; border-radius:3px; overflow:hidden;'>" \
+                  "<div style='width:#{pct}%; background:#{bar_color}; height:100%; border-radius:3px;'></div>" \
+                "</div>" \
+                "<span style='font-size:11px; font-weight:600; color:#586069; white-space:nowrap;'>#{done_count}/#{total}</span>" \
+              "</div>".html_safe
             end
           else
             super

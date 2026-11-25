@@ -4,6 +4,7 @@ post 'issues/:issue_id/checklists/quick_add', to: 'issue_checklists#quick_add', 
 post 'issues/:issue_id/checklists/clone_from', to: 'issue_checklists#clone_from', as: 'issue_clone_checklist'
 get  'issues/:issue_id/checklists/export', to: 'issue_checklists#export', as: 'issue_export_checklist'
 post 'issues/:issue_id/checklists/batch_import', to: 'issue_checklists#batch_import', as: 'issue_batch_import_checklist'
+post 'issues/:issue_id/checklists/:checklist_item_id/log_time', to: 'issue_checklists#log_time', as: 'issue_checklist_log_time'
 
 resources :issues do
   resources :issue_checklists, path: 'checklists', only: [:index, :create, :show, :update, :destroy] do
