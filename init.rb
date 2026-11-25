@@ -17,8 +17,9 @@ Redmine::Plugin.register :redmine_issue_checklist do
   requires_redmine version_or_higher: '5.0.0'
 
   settings default: {
-    save_log:         true,
-    issue_done_ratio: false
+    save_log:           true,
+    issue_done_ratio:   false,
+    show_in_admin_menu: true
   }, partial: 'settings/issue_checklist'
 
   Redmine::AccessControl.map do |map|
@@ -30,8 +31,23 @@ Redmine::Plugin.register :redmine_issue_checklist do
   end
 
   # Menu item for checklist templates
-  menu :admin_menu, :checklist_templates, { controller: 'checklist_templates', action: 'index' }, caption: :label_checklist_template_plural, html: { class: 'icon icon-checklist' }, if: Proc.new { User.current.admin? }
-  menu :project_menu, :checklist_templates, { controller: 'checklist_templates', action: 'index' }, caption: :label_checklist_template_plural, param: :project_id
+  menu :admin_menu, :checklist_templates,
+       { controller: 'checklist_templates', action: 'index' },
+       caption: :label_checklist_template_plural,
+       html: { class: 'icon icon-list' },
+       icon: 'list',
+       if: Proc.new {
+         settings = Setting.plugin_redmine_issue_checklist
+         enabled = settings.is_a?(Hash) ? (settings[:show_in_admin_menu].to_s != '0' && settings['show_in_admin_menu'].to_s != '0') : true
+         User.current.admin? && enabled
+       }
+
+  menu :project_menu, :checklist_templates,
+       { controller: 'checklist_templates', action: 'index' },
+       caption: :label_checklist_template_plural,
+       html: { class: 'icon icon-list' },
+       icon: 'list',
+       param: :project_id
 end
 
 require_relative 'lib/redmine_issue_checklist'

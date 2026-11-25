@@ -1,12 +1,21 @@
 <% @settings = {} unless @settings.is_a? Hash %>
 <p>
+  <label><%= l(:label_checklist_show_in_admin_menu) %></label>
+  <%= hidden_field_tag 'settings[show_in_admin_menu]', 0 %>
+  <%= check_box_tag 'settings[show_in_admin_menu]', 1, @settings[:show_in_admin_menu] != '0' && @settings[:show_in_admin_menu] != false %>
+  <em class="info"><%= l(:text_checklist_show_in_admin_menu_info) %></em>
+</p>
+
+<p>
   <label><%= l(:label_checklist_save_log) %></label>
-  <%= check_box_tag 'settings[save_log]', 1, @settings[:save_log] %>
+  <%= hidden_field_tag 'settings[save_log]', 0 %>
+  <%= check_box_tag 'settings[save_log]', 1, @settings[:save_log] != '0' && @settings[:save_log] != false %>
 </p>
 
 <% if Setting.issue_done_ratio == 'issue_field' %>
   <p>
     <label><%= l(:label_checklist_done_ratio) %></label>
-    <%= check_box_tag 'settings[issue_done_ratio]', 1, @settings[:issue_done_ratio] %>
+    <%= hidden_field_tag 'settings[issue_done_ratio]', 0 %>
+    <%= check_box_tag 'settings[issue_done_ratio]', 1, @settings[:issue_done_ratio] == '1' || @settings[:issue_done_ratio] == true %>
   </p>
 <% end %>
