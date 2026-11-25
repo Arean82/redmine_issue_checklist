@@ -1,6 +1,6 @@
 class IssueChecklistsController < ApplicationController
   before_action :find_checklist_item, only: [:done, :delete, :update, :destroy]
-  before_action :find_issue, only: [:quick_add, :clone_from, :export, :index, :create]
+  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :index, :create]
 
   accept_api_auth :index, :create, :show, :update, :destroy, :done
 
@@ -19,6 +19,57 @@ class IssueChecklistsController < ApplicationController
           only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]
         )
       end
+    end
+  end
+
+  def batch_import
+    (render_403; return false) unless User.current.allowed_to?(:edit_checklists, @project)
+
+    mode = params[:mode] || 'append'
+    raw_items = params[:items] || []
+
+    old_info = @issue.checklist.collect(&:info).join("\n")
+
+    if mode == 'replace'
+      @issue.checklist.destroy_all
+      base_pos = 0
+    else
+      base_pos = @issue.checklist.count
+    end
+
+    raw_items.each_with_index do |it, idx|
+      it_hash = it.respond_to?(:to_unsafe_h) ? it.to_unsafe_h : it.to_h
+      subject = it_hash[:subject] || it_hash['subject']
+      next if subject.blank?
+
+      is_sec = it_hash[:is_section] == '1' || it_hash['is_section'] == '1' || it_hash[:is_section] == true || it_hash['is_section'] == true
+      is_dn = it_hash[:is_done] == '1' || it_hash['is_done'] == '1' || it_hash[:is_done] == true || it_hash['is_done'] == true
+
+      @issue.checklist.create(
+        subject: subject,
+        is_section: is_sec,
+        is_done: is_dn,
+        position: base_pos + idx + 1
+      )
+    end
+
+    if RedmineIssueChecklist.settings[:save_log]
+      new_info = @issue.checklist.collect(&:info).join("\n")
+      journal = @issue.init_journal(User.current)
+      journal.details << JournalDetail.new(
+        property: 'attr',
+        prop_key: 'checklist',
+        old_value: old_info,
+        value: new_info
+      )
+      journal.save
+      @issue.reload
+      Mailer.deliver_issue_edit(journal) if Setting.notified_events.include?('issue_updated')
+    end
+
+    respond_to do |format|
+      format.json { render json: { success: true, count: @issue.checklist.count } }
+      format.html { redirect_to issue_path(@issue) }
     end
   end
 

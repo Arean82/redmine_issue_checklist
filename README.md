@@ -3,7 +3,7 @@
 [![Redmine 5.x / 6.x / 7.0+](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x%20%7C%207.0%2B-blue.svg)](http://www.redmine.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](GPL.txt)
 
-Enterprise issue checklist and task breakdown plugin for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters, journal audit history, email notifications, sub-task assignees, due dates, inline quick-add, and full REST API support.
+Enterprise issue checklist and task breakdown plugin for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters, journal audit history, email notifications, sub-task assignees, due dates, inline quick-add, interactive Markdown/TXT file import with live preview, and full REST API support.
 
 Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Arean82)).
 
@@ -13,6 +13,12 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 
 - **Interactive Issue Checklists**: Add, sort, toggle, and delete checklist items directly on issues with real-time UI updates.
 - **Direct Inline Quick-Add**: Add checklist items and section headers directly from the issue view with assignees and due dates without opening full edit forms.
+- **Import from TXT / Markdown (`.md`) with Live Preview**:
+  - Upload `.txt` or `.md` files.
+  - Smart-detects task lines (`Item`), Markdown checkboxes (`- [ ]`, `- [x]`), and headers (`#`, `##`) into section headers.
+  - Interactive preview table to toggle, review, or edit items before committing.
+  - Choose between **Append** to existing list or **Replace**.
+  - Works on both issue view and checklist template editor.
 - **Assignees & Due Dates per Item**: Assign team members and deadlines to individual checklist tasks with overdue indicators.
 - **Visual Progress Bar & Filter**: Real-time progress bar reflecting completion percentage and a quick "Hide Completed" toggle button.
 - **Checklist Sections & Groups**: Group checklist items into distinct logical sections by prefixing headers with `#`.
@@ -30,7 +36,6 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 - **Change History & Audit Trail**: Full journal logging when checklist items are toggled, added, or modified.
 - **Email Notifications**: Automatically dispatches notification emails to assignees and watchers on checklist changes.
 - **Automatic Done Ratio**: Optionally recalculate the issue `% Done` automatically based on completed items.
-- **Import/Export**: Drag-and-drop or select plain-text files to batch-import checklist lines.
 
 ---
 
@@ -71,9 +76,19 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 Navigate to **Administration > Roles and permissions** and configure:
 - `View checklist items`: Allows seeing checklists on issues.
 - `Check/uncheck checklist items`: Allows marking checklist tasks done or open.
-- `Edit checklist items`: Allows creating, deleting, quick-adding, and managing templates.
+- `Edit checklist items`: Allows creating, deleting, quick-adding, importing, and managing templates.
 
-### 2. Checklist Templates & Categories
+### 2. Import from File with Preview
+1. Click **Import from file...** (`.txt` or `.md`) on an issue or inside the template form.
+2. Select your text or Markdown file.
+3. Review the parsed table:
+   - Header lines (`#`) are converted to **Section** headers.
+   - Task lines or markdown boxes (`- [ ]`, `- [x]`) become tasks with initial state preserved.
+   - Edit any line or uncheck lines you wish to omit.
+   - Choose **Append to existing items** or **Replace existing items**.
+4. Click **Import** to apply immediately.
+
+### 3. Checklist Templates & Categories
 - **Global Management**: Go to **Administration > Checklist Templates** (or **Checklist Categories**).
 - **Project-Level**: Open any project's **Checklist Templates** tab to configure project-scoped templates.
 - **Creating a Template**:
@@ -82,16 +97,16 @@ Navigate to **Administration > Roles and permissions** and configure:
   - **Tracker**: Select a tracker (e.g. *Bug*, *Feature*) or leave as *All*.
   - **Default**: When checked, newly created issues of this Tracker will automatically be populated with these checklist items.
   - **Public**: Makes the template available across all project members.
-  - **Checklist items**: Enter one item per line. Prefix any line with `#` to turn it into a bold section divider.
+  - **Checklist items**: Enter one item per line, or click **Import from file (.txt / .md)...** to load tasks with live preview.
 
-### 3. Quick-Add on Issue Page
+### 4. Quick-Add on Issue Page
 On any issue page:
 - Type task text into the inline quick-add input at the bottom of the checklist.
 - Optionally select an **Assignee** and **Due Date**.
 - Check **Section** (or type `# Section Name`) to create a bold section divider.
 - Press **Add** or hit Enter to add immediately via AJAX without reloading the issue.
 
-### 4. Issue Filters & Columns
+### 5. Issue Filters & Columns
 - In the issues list (`/issues`), click **Options** and add **Checklist** to the selected columns to see live completion counters (`3/7`).
 - Under **Add filter**, select **Checklist status** (*All items done*, *Has open items*, *Empty checklist*) or **Checklist item contains** to search tasks.
 

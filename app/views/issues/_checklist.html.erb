@@ -27,6 +27,9 @@
         </a>
         <%= link_to l(:button_export), issue_export_checklist_path(@issue), class: 'checklist-toggle-btn', title: l(:label_checklist_export_md) %>
         <% if User.current.allowed_to?(:edit_checklists, @project) %>
+          <a href="#" id="open_checklist_import_modal_btn" class="checklist-toggle-btn">
+            <%= l(:label_checklist_import_preview) %>...
+          </a>
           <a href="#" onclick="$('#checklist_clone_box').toggle(); return false;" class="checklist-toggle-btn">
             <%= l(:button_copy) %>...
           </a>
@@ -81,5 +84,64 @@
         <% end %>
       </div>
     <% end %>
+  </div>
+
+  <%# Import from TXT/MD Preview Modal %>
+  <div id="checklist_import_modal" class="checklist-modal-backdrop" style="display:none;">
+    <div class="checklist-modal-dialog">
+      <div class="checklist-modal-header">
+        <h3><%= l(:label_checklist_import_modal_title) %></h3>
+        <button type="button" class="checklist-modal-close" onclick="closeChecklistImportModal();">&times;</button>
+      </div>
+      <div class="checklist-modal-body">
+        <p class="checklist-modal-desc"><%= l(:text_checklist_import_desc) %></p>
+        
+        <div class="checklist-file-dropzone" id="checklist_file_dropzone">
+          <input type="file" id="checklist_import_file_input" accept=".txt,.md,text/plain,text/markdown" style="display:none;" />
+          <button type="button" class="button-small" onclick="$('#checklist_import_file_input').click();">
+            <%= l(:button_choose_file) %> (.txt / .md)
+          </button>
+          <span id="checklist_import_filename" style="margin-left: 10px; font-weight: 600; color: #586069;"></span>
+        </div>
+
+        <div id="checklist_import_preview_area" style="display:none; margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong><%= l(:label_checklist_preview) %>:</strong>
+            <span id="checklist_preview_counts" class="info"></span>
+          </div>
+
+          <div class="checklist-preview-list-container">
+            <table class="list checklist-preview-table" id="checklist_preview_table">
+              <thead>
+                <tr>
+                  <th width="30"><input type="checkbox" id="checklist_preview_check_all" checked /></th>
+                  <th width="70"><%= l(:field_type) %></th>
+                  <th><%= l(:field_subject) %></th>
+                </tr>
+              </thead>
+              <tbody id="checklist_preview_table_body">
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
+            <label>
+              <input type="radio" name="import_action_mode" value="append" checked />
+              <%= l(:label_checklist_import_append) %>
+            </label>
+            <label>
+              <input type="radio" name="import_action_mode" value="replace" />
+              <%= l(:label_checklist_import_replace) %>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="checklist-modal-footer">
+        <button type="button" class="button-small" onclick="closeChecklistImportModal();"><%= l(:button_cancel) %></button>
+        <button type="button" id="confirm_checklist_import_btn" class="button-small button-primary" style="display:none;" onclick="applyChecklistImportToIssue('<%= @issue.id %>');">
+          <%= l(:button_import) %>
+        </button>
+      </div>
+    </div>
   </div>
 <% end %>

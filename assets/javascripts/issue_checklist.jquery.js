@@ -1,3 +1,191 @@
+var parsedImportItems = [];
+
+function openChecklistImportModal() {
+  $('#checklist_import_modal').fadeIn(200);
+}
+
+function closeChecklistImportModal() {
+  $('#checklist_import_modal').fadeOut(200);
+  $('#checklist_import_file_input').val('');
+  $('#template_file_import_input').val('');
+  $('#checklist_import_filename').text('');
+  $('#checklist_import_preview_area').hide();
+  $('#confirm_checklist_import_btn').hide();
+  parsedImportItems = [];
+}
+
+// Smart parser for TXT and Markdown files without using regex
+function parseChecklistText(rawText) {
+  var lines = rawText.split("\n");
+  var items = [];
+
+  for (var i = 0; i < lines.length; i++) {
+    var rawLine = lines[i];
+    var line = $.trim(rawLine);
+    if (!line || line.length === 0) continue;
+
+    var isSection = false;
+    var isDone = false;
+    var subject = line;
+
+    // 1. Markdown Header detection (#, ##, ###)
+    if (line.indexOf('#') === 0) {
+      isSection = true;
+      var clean = line;
+      while (clean.indexOf('#') === 0) {
+        clean = clean.substring(1);
+      }
+      subject = $.trim(clean);
+    }
+    // 2. Markdown Checkbox detection: "- [ ]", "* [ ]", "- [x]", "* [x]"
+    else if (line.indexOf('- [x]') === 0 || line.indexOf('- [X]') === 0 || line.indexOf('* [x]') === 0 || line.indexOf('* [X]') === 0) {
+      isDone = true;
+      subject = $.trim(line.substring(5));
+    }
+    else if (line.indexOf('- [ ]') === 0 || line.indexOf('* [ ]') === 0) {
+      isDone = false;
+      subject = $.trim(line.substring(5));
+    }
+    // 3. Bullet list prefixes: "-", "*", "+"
+    else if (line.indexOf('- ') === 0 || line.indexOf('* ') === 0 || line.indexOf('+ ') === 0) {
+      subject = $.trim(line.substring(2));
+    }
+
+    if (subject.length > 0) {
+      items.push({
+        subject: subject,
+        is_section: isSection,
+        is_done: isDone,
+        selected: true
+      });
+    }
+  }
+
+  return items;
+}
+
+function renderImportPreview(items) {
+  parsedImportItems = items;
+  var $tbody = $('#checklist_preview_table_body');
+  $tbody.empty();
+
+  var taskCount = 0;
+  var sectionCount = 0;
+
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    if (it.is_section) sectionCount++; else taskCount++;
+
+    var $tr = $('<tr>');
+    var $cb = $('<input type="checkbox" class="preview-item-checkbox" checked data-index="' + i + '">');
+    var $tdCheck = $('<td>').append($cb);
+
+    var typeBadge = it.is_section ?
+      '<span class="badge" style="background:#586069; color:#fff;">Section</span>' :
+      (it.is_done ? '<span class="badge badge-success">Done</span>' : '<span class="badge badge-info">Task</span>');
+
+    var $tdType = $('<td>').html(typeBadge);
+    var $input = $('<input type="text" class="preview-item-edit-field" data-index="' + i + '">').val(it.subject);
+    if (it.is_section) {
+      $input.css('font-weight', 'bold');
+    }
+    var $tdSubject = $('<td>').append($input);
+
+    $tr.append($tdCheck).append($tdType).append($tdSubject);
+    $tbody.append($tr);
+  }
+
+  $('#checklist_preview_counts').text(taskCount + ' tasks, ' + sectionCount + ' sections');
+  $('#checklist_import_preview_area').show();
+  $('#confirm_checklist_import_btn').show();
+  $('#confirm_template_import_btn').show();
+}
+
+function handleFileSelected(file) {
+  if (!file) return;
+  $('#checklist_import_filename').text(file.name);
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var content = e.target.result;
+    var parsed = parseChecklistText(content);
+    if (parsed.length === 0) {
+      alert('No valid checklist items found in file.');
+      return;
+    }
+    renderImportPreview(parsed);
+  };
+  reader.readAsText(file);
+}
+
+function applyChecklistImportToIssue(issueId) {
+  var finalItems = [];
+  $('#checklist_preview_table_body tr').each(function() {
+    var $cb = $(this).find('.preview-item-checkbox');
+    if ($cb.is(':checked')) {
+      var idx = parseInt($cb.data('index'), 10);
+      var subj = $(this).find('.preview-item-edit-field').val();
+      finalItems.push({
+        subject: subj,
+        is_section: parsedImportItems[idx].is_section ? '1' : '0',
+        is_done: parsedImportItems[idx].is_done ? '1' : '0'
+      });
+    }
+  });
+
+  if (finalItems.length === 0) {
+    alert('Please select at least one item to import.');
+    return;
+  }
+
+  var mode = $('input[name="import_action_mode"]:checked').val() || 'append';
+
+  $.ajax({
+    url: '/issues/' + issueId + '/checklists/batch_import',
+    type: 'POST',
+    data: {
+      items: finalItems,
+      mode: mode
+    },
+    dataType: 'json',
+    success: function(resp) {
+      closeChecklistImportModal();
+      location.reload();
+    },
+    error: function(xhr) {
+      alert('Failed to import checklist items.');
+    }
+  });
+}
+
+function applyChecklistImportToTemplate() {
+  var mode = $('input[name="template_import_mode"]:checked').val() || 'append';
+  var lines = [];
+
+  $('#checklist_preview_table_body tr').each(function() {
+    var $cb = $(this).find('.preview-item-checkbox');
+    if ($cb.is(':checked')) {
+      var idx = parseInt($cb.data('index'), 10);
+      var subj = $(this).find('.preview-item-edit-field').val();
+      if (parsedImportItems[idx].is_section) {
+        lines.push('# ' + subj);
+      } else {
+        lines.push(subj);
+      }
+    }
+  });
+
+  var $ta = $('#template_items_textarea');
+  var currentVal = $.trim($ta.val());
+
+  if (mode === 'replace' || currentVal.length === 0) {
+    $ta.val(lines.join("\n"));
+  } else {
+    $ta.val(currentVal + "\n" + lines.join("\n"));
+  }
+
+  closeChecklistImportModal();
+}
+
 $(document).ready(function() {
   $('#checklist_form_items').sortable();
 
@@ -21,6 +209,29 @@ $(document).ready(function() {
     hideCompleted = !hideCompleted;
     localStorage.setItem('hide_completed_checklists', hideCompleted ? '1' : '0');
     applyHideCompletedState();
+  });
+
+  $('#open_checklist_import_modal_btn').click(function(e) {
+    e.preventDefault();
+    openChecklistImportModal();
+  });
+
+  $('#checklist_import_file_input').on('change', function(e) {
+    var file = e.target.files[0];
+    handleFileSelected(file);
+  });
+
+  $('#template_file_import_input').on('change', function(e) {
+    var file = e.target.files[0];
+    if (file) {
+      openChecklistImportModal();
+      handleFileSelected(file);
+    }
+  });
+
+  $('#checklist_preview_check_all').click(function() {
+    var isChecked = $(this).is(':checked');
+    $('.preview-item-checkbox').prop('checked', isChecked);
   });
 });
 
@@ -65,10 +276,7 @@ Redmine.IssueChecklist = jQuery.klass({
     if (this.templateBtn.length > 0) {
       this.templateBtn.click($.proxy(this.applyTemplate, this));
     }
-    this.fileInput.on('change', $.proxy(this.onFileInputChange, this));
     this.input.keypress($.proxy(this.onKeyPress, this));
-    this.input.on('dragover', $.proxy(this.onDragOver, this));
-    this.input.on('drop', $.proxy(this.onDrop, this));
   },
 
   readChecklist: function(event) {
@@ -172,57 +380,6 @@ Redmine.IssueChecklist = jQuery.klass({
 
   getChecklist: function() {
     return this.checklist;
-  },
-
-  onDragOver: function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    event.originalEvent.dataTransfer.dropEffect = 'copy';
-  },
-
-  onDrop: function(event) {
-    var file = event.dataTransfer.files[0];
-    event.stopPropagation();
-    event.preventDefault();
-    if (file) {
-      this.parseMultiLineFile(file);
-    }
-  },
-
-  onFileInputChange: function(event) {
-    var file = event.target.files[0];
-    if (file) {
-      this.parseMultiLineFile(file);
-    }
-  },
-
-  parseMultiLineFile: function (file) {
-    if (!(window.File && window.FileReader) || !file) {
-      return false;
-    }
-
-    var _this = this;
-    var reader = new window.FileReader();
-
-    reader.onload = function(event) {
-      var result = event.target.result;
-      var lines = result.split("\n").filter(function(el) {
-        return !$.isEmptyObject($.trim(el));
-      });
-
-      if (lines.length && window.confirm('Import ' + lines.length + ' checklist items?')) {
-        lines.forEach(function(line) {
-          var trimmed = $.trim(line);
-          if (trimmed.indexOf('#') === 0) {
-            _this.addChecklistItem(trimmed.substring(1).trim(), false, null, true);
-          } else {
-            _this.addChecklistItem(trimmed, false, null, false);
-          }
-        });
-      }
-    };
-
-    reader.readAsText(file);
   }
 });
 

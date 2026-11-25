@@ -3,6 +3,7 @@ match 'checklist/delete/:checklist_item_id', to: 'issue_checklists#delete', via:
 post 'issues/:issue_id/checklists/quick_add', to: 'issue_checklists#quick_add', as: 'issue_quick_add_checklist'
 post 'issues/:issue_id/checklists/clone_from', to: 'issue_checklists#clone_from', as: 'issue_clone_checklist'
 get  'issues/:issue_id/checklists/export', to: 'issue_checklists#export', as: 'issue_export_checklist'
+post 'issues/:issue_id/checklists/batch_import', to: 'issue_checklists#batch_import', as: 'issue_batch_import_checklist'
 
 resources :issues do
   resources :issue_checklists, path: 'checklists', only: [:index, :create, :show, :update, :destroy] do

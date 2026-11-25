@@ -26,6 +26,13 @@ en:
   label_checklist_show_completed: Show completed
   label_checklist_add_section: Add section
   label_checklist_import: Import checklist from text file
+  label_checklist_import_preview: Import from file
+  label_checklist_import_modal_title: Import Checklist Items (.txt / .md)
+  text_checklist_import_desc: Select a plain text or Markdown file. Lines starting with # become sections, and standard lines or task checkboxes (- [ ] / - [x]) are automatically detected.
+  button_choose_file: Choose file
+  label_checklist_preview: Parsed items preview
+  label_checklist_import_append: Append to existing items
+  label_checklist_import_replace: Replace existing items
   label_checklist_item_search: Checklist item contains
   label_checklist_status: Checklist status
   label_checklist_status_all_done: All items done

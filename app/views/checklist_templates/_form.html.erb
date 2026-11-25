@@ -27,7 +27,69 @@
   </p>
   <p>
     <%= f.label :template_items, l(:label_checklist_template_items) %>
-    <%= f.text_area :template_items, rows: 10, cols: 60, placeholder: "Item 1\n# Section Header\nItem 2" %>
-    <em class="info"><%= l(:text_checklist_template_items_info) %></em>
+    <%= f.text_area :template_items, id: 'template_items_textarea', rows: 10, cols: 60, placeholder: "Item 1\n# Section Header\nItem 2" %>
+    <br/>
+    <span style="display: inline-block; margin-top: 6px;">
+      <input type="file" id="template_file_import_input" accept=".txt,.md,text/plain,text/markdown" style="display:none;" />
+      <button type="button" class="button-small" onclick="$('#template_file_import_input').click();">
+        <%= l(:label_checklist_import_preview) %> (.txt / .md)...
+      </button>
+    </span>
+    <em class="info" style="display:block; margin-top: 4px;"><%= l(:text_checklist_template_items_info) %></em>
   </p>
 </div>
+
+<%# Import Preview Modal for Templates %>
+<div id="checklist_import_modal" class="checklist-modal-backdrop" style="display:none;">
+  <div class="checklist-modal-dialog">
+    <div class="checklist-modal-header">
+      <h3><%= l(:label_checklist_import_modal_title) %></h3>
+      <button type="button" class="checklist-modal-close" onclick="closeChecklistImportModal();">&times;</button>
+    </div>
+    <div class="checklist-modal-body">
+      <div id="checklist_import_preview_area">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <strong><%= l(:label_checklist_preview) %>:</strong>
+          <span id="checklist_preview_counts" class="info"></span>
+        </div>
+
+        <div class="checklist-preview-list-container">
+          <table class="list checklist-preview-table" id="checklist_preview_table">
+            <thead>
+              <tr>
+                <th width="30"><input type="checkbox" id="checklist_preview_check_all" checked /></th>
+                <th width="70"><%= l(:field_type) %></th>
+                <th><%= l(:field_subject) %></th>
+              </tr>
+            </thead>
+            <tbody id="checklist_preview_table_body">
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
+          <label>
+            <input type="radio" name="template_import_mode" value="append" checked />
+            <%= l(:label_checklist_import_append) %>
+          </label>
+          <label>
+            <input type="radio" name="template_import_mode" value="replace" />
+            <%= l(:label_checklist_import_replace) %>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="checklist-modal-footer">
+      <button type="button" class="button-small" onclick="closeChecklistImportModal();"><%= l(:button_cancel) %></button>
+      <button type="button" id="confirm_template_import_btn" class="button-small button-primary" onclick="applyChecklistImportToTemplate();">
+        <%= l(:button_import) %>
+      </button>
+    </div>
+  </div>
+</div>
+
+<% content_for :header_tags do %>
+  <%= javascript_include_tag 'jquery.klass.js', plugin: 'redmine_issue_checklist' %>
+  <%= javascript_include_tag 'issue_checklist.jquery.js', plugin: 'redmine_issue_checklist' %>
+  <%= stylesheet_link_tag :issue_checklist, plugin: 'redmine_issue_checklist' %>
+<% end %>
