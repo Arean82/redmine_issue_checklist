@@ -3,7 +3,7 @@
 [![Redmine 5.x / 6.x / 7.0+](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x%20%7C%207.0%2B-blue.svg)](http://www.redmine.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](GPL.txt)
 
-Interactive, enterprise-grade checklist management for Redmine issues with template workflows, tracker automation, custom fields, query filtering, audit logging, and email notification delivery.
+Enterprise issue checklist and task breakdown plugin for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters, journal audit history, and email notifications.
 
 Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Arean82)).
 
