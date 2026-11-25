@@ -1,5 +1,148 @@
 class IssueChecklistsController < ApplicationController
-  before_action :find_checklist_item
+  before_action :find_checklist_item, only: [:done, :delete, :update, :destroy]
+  before_action :find_issue, only: [:quick_add, :clone_from, :export, :index, :create]
+
+  accept_api_auth :index, :create, :show, :update, :destroy, :done
+
+  def index
+    (render_403; return false) unless User.current.allowed_to?(:view_checklists, @project)
+
+    respond_to do |format|
+      format.json do
+        render json: @issue.checklist.as_json(
+          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date],
+          include: { assigned_to: { only: [:id, :name] } }
+        )
+      end
+      format.xml do
+        render xml: @issue.checklist.to_xml(
+          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]
+        )
+      end
+    end
+  end
+
+  def create
+    (render_403; return false) unless User.current.allowed_to?(:edit_checklists, @project)
+
+    checklist_params = params[:checklist] || params
+    subject = checklist_params[:subject]
+    is_section = checklist_params[:is_section] == '1' || checklist_params[:is_section] == true
+    assigned_to_id = checklist_params[:assigned_to_id]
+    due_date = checklist_params[:due_date]
+
+    item = @issue.checklist.build(
+      subject: subject,
+      is_section: is_section,
+      is_done: false,
+      assigned_to_id: assigned_to_id.presence,
+      due_date: due_date.presence,
+      position: @issue.checklist.count + 1
+    )
+
+    if item.save
+      if RedmineIssueChecklist.settings[:save_log]
+        journal = @issue.init_journal(User.current)
+        journal.details << JournalDetail.new(property: 'attr', prop_key: 'checklist', old_value: '', value: item.info)
+        journal.save
+      end
+
+      respond_to do |format|
+        format.json { render json: item.as_json(only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]), status: :created }
+        format.xml  { render xml: item.to_xml, status: :created }
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { errors: item.errors.full_messages }, status: :unprocessable_entity }
+        format.xml  { render xml: item.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def quick_add
+    (render_403; return false) unless User.current.allowed_to?(:edit_checklists, @project)
+
+    subject = params[:subject].to_s.strip
+    if subject.present?
+      is_section = params[:is_section] == '1' || subject.start_with?('#')
+      clean_subject = subject.delete_prefix('#').strip
+
+      @item = @issue.checklist.create(
+        subject: clean_subject,
+        is_section: is_section,
+        is_done: false,
+        assigned_to_id: params[:assigned_to_id].presence,
+        due_date: params[:due_date].presence,
+        position: @issue.checklist.count + 1
+      )
+
+      if RedmineIssueChecklist.settings[:save_log] && @item.persisted?
+        journal = @issue.init_journal(User.current)
+        journal.details << JournalDetail.new(
+          property: 'attr',
+          prop_key: 'checklist',
+          old_value: '',
+          value: @item.info
+        )
+        journal.save
+        @issue.reload
+        Mailer.deliver_issue_edit(journal) if Setting.notified_events.include?('issue_updated')
+      end
+    end
+
+    respond_to do |format|
+      format.js
+      format.html { redirect_to issue_path(@issue) }
+    end
+  end
+
+  def clone_from
+    (render_403; return false) unless User.current.allowed_to?(:edit_checklists, @project)
+
+    source_issue = Issue.visible.find_by(id: params[:source_issue_id])
+    if source_issue && source_issue.checklist.any?
+      old_info = @issue.checklist.collect(&:info).join("\n")
+      current_pos = @issue.checklist.count
+
+      source_issue.checklist.each_with_index do |src_item, idx|
+        @issue.checklist.create(
+          subject: src_item.subject,
+          is_section: src_item.is_section,
+          is_done: false,
+          assigned_to_id: src_item.assigned_to_id,
+          position: current_pos + idx + 1
+        )
+      end
+
+      if RedmineIssueChecklist.settings[:save_log]
+        new_info = @issue.checklist.collect(&:info).join("\n")
+        journal = @issue.init_journal(User.current)
+        journal.details << JournalDetail.new(property: 'attr', prop_key: 'checklist', old_value: old_info, value: new_info)
+        journal.save
+      end
+
+      flash[:notice] = l(:notice_checklist_cloned_successfully)
+    else
+      flash[:error] = l(:error_no_checklist_to_clone)
+    end
+
+    redirect_to issue_path(@issue)
+  end
+
+  def export
+    (render_403; return false) unless User.current.allowed_to?(:view_checklists, @project)
+
+    lines = []
+    lines << "# Checklist for Issue ##{@issue.id}: #{@issue.subject}"
+    lines << ""
+    @issue.checklist.each do |item|
+      lines << item.info
+    end
+
+    send_data lines.join("\n"),
+              filename: "issue-#{@issue.id}-checklist.md",
+              type: 'text/markdown; charset=utf-8'
+  end
 
   def done
     (render_403; return false) unless User.current.allowed_to?(:done_checklists, @checklist_item.issue.project)
@@ -18,7 +161,6 @@ class IssueChecklistsController < ApplicationController
         )
         journal.save
         @checklist_item.issue.reload
-        # Notify watchers/assigned if email notifications are enabled
         Mailer.deliver_issue_edit(journal) if Setting.notified_events.include?('issue_updated')
       end
 
@@ -34,6 +176,7 @@ class IssueChecklistsController < ApplicationController
 
     respond_to do |format|
       format.js
+      format.json { render json: @checklist_item.as_json(only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]) }
       format.html { redirect_back(fallback_location: root_path) }
     end
   end
@@ -44,8 +187,9 @@ class IssueChecklistsController < ApplicationController
     @checklist_item.destroy
     respond_to do |format|
       format.js do
-        render js: "$('#checklist_item_#{@checklist_item.id}').fadeOut();"
+        render js: "$('#checklist_item_#{@checklist_item.id}').fadeOut(300, function(){ $(this).remove(); updateChecklistProgress(); });"
       end
+      format.json { head :no_content }
       format.html { redirect_back(fallback_location: root_path) }
     end
   end
@@ -53,7 +197,12 @@ class IssueChecklistsController < ApplicationController
   private
 
   def find_checklist_item
-    @checklist_item = IssueChecklist.find(params[:checklist_item_id])
+    @checklist_item = IssueChecklist.find(params[:id] || params[:checklist_item_id])
     @project        = @checklist_item.issue.project
+  end
+
+  def find_issue
+    @issue = Issue.find(params[:issue_id])
+    @project = @issue.project
   end
 end

@@ -16,6 +16,11 @@ en:
   label_checklist_template_items: Checklist items
   text_checklist_template_items_info: One item per line. Prefix with '#' to define a section header.
   text_checklist_input_placeholder: Add new checklist item...
+  text_checklist_quick_add_placeholder: Quick-add checklist task or section...
+  text_checklist_section_info: Make this item a bold section header
+  label_checklist_is_section: Section
+  label_checklist_hide_completed: Hide completed
+  label_checklist_show_completed: Show completed
   label_checklist_add_section: Add section
   label_checklist_import: Import checklist from text file
   label_checklist_item_search: Checklist item contains
@@ -23,3 +28,7 @@ en:
   label_checklist_status_all_done: All items done
   label_checklist_status_has_undone: Has open items
   label_checklist_status_empty: Empty checklist
+  label_checklist_export_md: Export checklist as Markdown
+  label_checklist_clone_from_issue: Copy checklist from issue
+  notice_checklist_cloned_successfully: Checklist items copied successfully.
+  error_no_checklist_to_clone: Source issue does not have any checklist items.

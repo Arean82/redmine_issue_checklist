@@ -1,6 +1,47 @@
-window.onload = function() {
+$(document).ready(function() {
   $('#checklist_form_items').sortable();
-};
+
+  var hideCompleted = localStorage.getItem('hide_completed_checklists') === '1';
+
+  function applyHideCompletedState() {
+    var $completedItems = $('#issue_checklist_items li.is-done-checklist-item');
+    if (hideCompleted) {
+      $completedItems.hide();
+      $('#toggle_completed_checklists_btn').text('Show completed (' + $completedItems.length + ')');
+    } else {
+      $completedItems.show();
+      $('#toggle_completed_checklists_btn').text('Hide completed');
+    }
+  }
+
+  applyHideCompletedState();
+
+  $('#toggle_completed_checklists_btn').click(function(e) {
+    e.preventDefault();
+    hideCompleted = !hideCompleted;
+    localStorage.setItem('hide_completed_checklists', hideCompleted ? '1' : '0');
+    applyHideCompletedState();
+  });
+});
+
+function updateChecklistProgress() {
+  var $items = $('#issue_checklist_items li:not(.checklist-section-item)');
+  var total = $items.length;
+  var done = $items.filter('.is-done-checklist-item').length;
+  var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  $('.checklist-count-badge').text(done + '/' + total + ' (' + pct + '%)');
+  if (pct === 100) {
+    $('.checklist-count-badge').removeClass('badge-info').addClass('badge-success');
+  } else {
+    $('.checklist-count-badge').removeClass('badge-success').addClass('badge-info');
+  }
+  $('.checklist-progress-fill').css('width', pct + '%');
+
+  if (localStorage.getItem('hide_completed_checklists') === '1') {
+    $('#issue_checklist_items li.is-done-checklist-item').hide();
+  }
+}
 
 var Redmine = Redmine || {};
 
@@ -194,6 +235,17 @@ function createIssueChecklist(checkList) {
 }
 
 function checklist_item_done(elem, url, id) {
+  var $li = $('#checklist_item_' + id);
+  var $cb = $(elem);
+  var isChecked = $cb.is(':checked');
+
+  if (isChecked) {
+    $li.addClass('is-done-checklist-item');
+  } else {
+    $li.removeClass('is-done-checklist-item');
+  }
+  updateChecklistProgress();
+
   $.ajax({
     url: url,
     type: 'POST',

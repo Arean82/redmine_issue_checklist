@@ -7,5 +7,26 @@
         onclick:  "checklist_item_done(this,'#{url_for({ controller: 'issue_checklists', action: 'done', checklist_item_id: checklist_item.id, is_done: (checklist_item.is_done == false) })}','#{checklist_item.id}')"
     %>
     <span class="checklist-item-subject"><%= textilizable(checklist_item, :subject).delete_prefix('<p>').delete_suffix('</p>').strip.html_safe %></span>
+
+    <% if checklist_item.assigned_to.present? %>
+      <span class="checklist-pill checklist-pill-assignee" title="<%= l(:field_assigned_to) %>">
+        <%= avatar(checklist_item.assigned_to, size: "14") rescue '' %>
+        <%= checklist_item.assigned_to.name %>
+      </span>
+    <% end %>
+
+    <% if checklist_item.due_date.present? %>
+      <span class="checklist-pill checklist-pill-due <%= 'checklist-pill-overdue' if checklist_item.due_date < Date.today && !checklist_item.is_done %>" title="<%= l(:field_due_date) %>">
+        &#128197; <%= format_date(checklist_item.due_date) %>
+      </span>
+    <% end %>
+  <% end %>
+
+  <% if User.current.allowed_to?(:edit_checklists, checklist_item.issue.project) %>
+    <span class="checklist-item-actions">
+      <%= link_to '', { controller: 'issue_checklists', action: 'delete', checklist_item_id: checklist_item.id },
+                  remote: true, method: :post,
+                  class: 'delete icon icon-del', title: l(:button_delete) %>
+    </span>
   <% end %>
 </li>

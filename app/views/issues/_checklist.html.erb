@@ -4,31 +4,82 @@
   <%= stylesheet_link_tag :issue_checklist, plugin: 'redmine_issue_checklist' %>
 <% end %>
 
-<% if !@issue.blank? && @issue.checklist.any? && User.current.allowed_to?(:view_checklists, @project) %>
+<% if !@issue.blank? && User.current.allowed_to?(:view_checklists, @project) %>
+  <%
+    items = @issue.checklist.reject(&:is_section)
+    total_items = items.size
+    done_items = items.select(&:is_done).size
+    percent = total_items > 0 ? (done_items.to_f / total_items * 100).round : 0
+  %>
   <hr/>
-  <div id="issue_checklist" class="box">
-    <div class="contextual">
-      <span class="checklist-progress-bar">
-        <%
-          items = @issue.checklist.reject(&:is_section)
-          total_items = items.size
-          done_items = items.select(&:is_done).size
-          percent = total_items > 0 ? (done_items.to_f / total_items * 100).round : 0
-        %>
-        <% if total_items > 0 %>
-          <span class="checklist-stats badge <%= percent == 100 ? 'badge-success' : 'badge-info' %>">
-            <%= done_items %>/<%= total_items %> (<%= percent %>%)
-          </span>
+  <div id="issue_checklist" class="box issue-checklist-container">
+    <div class="checklist-header-row">
+      <div class="checklist-title-area">
+        <strong><%= l(:label_issue_checklist_plural) %></strong>
+        <span class="checklist-count-badge badge <%= percent == 100 ? 'badge-success' : 'badge-info' %>">
+          <%= done_items %>/<%= total_items %> (<%= percent %>%)
+        </span>
+      </div>
+
+      <div class="checklist-actions-area">
+        <a href="#" id="toggle_completed_checklists_btn" class="checklist-toggle-btn">
+          <%= l(:label_checklist_hide_completed) %>
+        </a>
+        <%= link_to l(:button_export), issue_export_checklist_path(@issue), class: 'checklist-toggle-btn', title: l(:label_checklist_export_md) %>
+        <% if User.current.allowed_to?(:edit_checklists, @project) %>
+          <a href="#" onclick="$('#checklist_clone_box').toggle(); return false;" class="checklist-toggle-btn">
+            <%= l(:button_copy) %>...
+          </a>
         <% end %>
-      </span>
+      </div>
     </div>
 
-    <p><strong><%= l(:label_issue_checklist_plural) %></strong></p>
+    <% if total_items > 0 %>
+      <div class="checklist-progress-track">
+        <div class="checklist-progress-fill" style="width: <%= percent %>%;"></div>
+      </div>
+    <% end %>
+
+    <% if User.current.allowed_to?(:edit_checklists, @project) %>
+      <div id="checklist_clone_box" style="display:none; margin-bottom: 12px; padding: 8px; background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 4px;">
+        <%= form_with url: issue_clone_checklist_path(@issue), method: :post, local: true do |f| %>
+          <span><%= l(:label_checklist_clone_from_issue) %>: #</span>
+          <input type="number" name="source_issue_id" size="8" style="width: 80px;" placeholder="ID" required />
+          <button type="submit" class="button-small"><%= l(:button_apply) %></button>
+        <% end %>
+      </div>
+    <% end %>
 
     <ul id="issue_checklist_items" class="checklist-view-list">
       <% @issue.checklist.each do |checklist_item| %>
         <%= render partial: 'issue_checklists/checklist_item', object: checklist_item %>
       <% end %>
     </ul>
+
+    <% if User.current.allowed_to?(:edit_checklists, @project) %>
+      <div class="checklist-quick-add-bar">
+        <%= form_with url: issue_quick_add_checklist_path(@issue), method: :post, id: 'checklist_quick_add_form', local: false do |f| %>
+          <div class="quick-add-input-group">
+            <input type="text" name="subject" id="quick_add_checklist_input" placeholder="<%= l(:text_checklist_quick_add_placeholder) %>" class="quick-add-field" autocomplete="off" required />
+
+            <select name="assigned_to_id" class="quick-add-select" title="<%= l(:field_assigned_to) %>">
+              <option value=""><%= l(:field_assigned_to) %>...</option>
+              <% @project.assignable_users.each do |u| %>
+                <option value="<%= u.id %>"><%= u.name %></option>
+              <% end %>
+            </select>
+
+            <input type="date" name="due_date" class="quick-add-date" title="<%= l(:field_due_date) %>" />
+
+            <label class="quick-add-section-label" title="<%= l(:text_checklist_section_info) %>">
+              <input type="checkbox" name="is_section" value="1" id="quick_add_is_section" />
+              <span><%= l(:label_checklist_is_section) %></span>
+            </label>
+
+            <button type="submit" class="button-small button-primary"><%= l(:button_add) %></button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 <% end %>

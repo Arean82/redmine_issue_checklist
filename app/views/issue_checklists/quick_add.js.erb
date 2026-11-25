@@ -1,0 +1,8 @@
+<% if @item && @item.persisted? %>
+  $('#issue_checklist_items').append("<%= j render(partial: 'issue_checklists/checklist_item', object: @item) %>");
+  $('#quick_add_checklist_input').val('');
+  $('#quick_add_is_section').prop('checked', false);
+  if (typeof updateChecklistProgress === 'function') {
+    updateChecklistProgress();
+  }
+<% end %>
