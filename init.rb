@@ -46,8 +46,6 @@ Redmine::Plugin.register :redmine_issue_checklist do
   menu :project_menu, :checklist_templates,
        { controller: 'checklist_templates', action: 'index' },
        caption: :label_checklist_template_plural,
-       html: { class: 'icon icon-list' },
-       icon: 'list',
        param: :project_id
 end
 
