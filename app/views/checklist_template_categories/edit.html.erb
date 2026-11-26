@@ -2,8 +2,15 @@
 
 <%= form_for @category do |f| %>
   <div class="box tabular">
-    <p><%= f.text_field :name, required: true, size: 60 %></p>
-    <p><%= f.number_field :position %></p>
+    <p>
+      <%= f.label :name, l(:field_name) %><span class="required"> *</span>
+      <%= f.text_field :name, required: true, size: 60 %>
+    </p>
+    <p>
+      <%= f.label :position, (l(:field_position, default: 'Position')) %>
+      <%= f.number_field :position %>
+      <em class="info"><%= l(:text_checklist_category_position_info) %></em>
+    </p>
   </div>
   <%= f.submit l(:button_save) %>
 <% end %>

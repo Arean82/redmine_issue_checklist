@@ -36,6 +36,8 @@ en:
   label_checklist_category_plural: Checklist Categories
   label_checklist_category_new: New checklist category
   label_checklist_category_edit: Edit checklist category
+  field_position: Position
+  text_checklist_category_position_info: Display order in dropdown lists
   label_checklist_apply_template: Apply template
   label_checklist_template_items: Checklist items
   text_checklist_template_items_info: One item per line. Prefix with '#' to define a bold section header.
