@@ -8,6 +8,22 @@ module RedmineIssueChecklist
 
           alias_method :copy_from_without_checklist, :copy_from
           alias_method :copy_from, :copy_from_with_checklist
+
+          validate :validate_checklist_completion_before_closing
+        end
+      end
+
+      def validate_checklist_completion_before_closing
+        return unless closing?
+
+        settings = RedmineIssueChecklist.settings
+        block_closure = settings.is_a?(Hash) && (settings[:block_issue_closure].to_s == '1' || settings['block_issue_closure'].to_s == '1')
+        return unless block_closure
+
+        open_items = checklist.reject(&:is_section).reject(&:is_done)
+        if open_items.any?
+          items_list = open_items.map(&:subject).join(', ')
+          errors.add(:base, l(:error_cannot_close_issue_with_open_checklists, items: items_list))
         end
       end
 

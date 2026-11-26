@@ -74,6 +74,13 @@
 
             <input type="date" name="due_date" class="quick-add-date" title="<%= l(:field_due_date) %>" />
 
+            <% if User.current.allowed_to?(:add_issues, @project) %>
+              <select name="create_mode" class="quick-add-select" title="<%= l(:label_checklist_create_mode) %>">
+                <option value="checklist"><%= l(:label_checklist_mode_task) %></option>
+                <option value="sub_issue">&#10133; <%= l(:label_checklist_mode_sub_issue) %></option>
+              </select>
+            <% end %>
+
             <label class="quick-add-section-label" title="<%= l(:text_checklist_section_info) %>">
               <input type="checkbox" name="is_section" value="1" id="quick_add_is_section" />
               <span><%= l(:label_checklist_is_section) %></span>

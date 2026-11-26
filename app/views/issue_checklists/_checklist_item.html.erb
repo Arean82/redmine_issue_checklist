@@ -1,5 +1,11 @@
 <li id="checklist_item_<%= checklist_item.id %>" class="<%= 'checklist-section-item' if checklist_item.is_section %> <%= 'is-done-checklist-item' if checklist_item.is_done %>">
-  <% if checklist_item.is_section %>
+  <% if checklist_item.converted_issue.present? %>
+    <span class="checklist-converted-icon">&#128279;</span>
+    <span class="checklist-item-subject">
+      <%= link_to_issue(checklist_item.converted_issue, tracker: true) %>
+      <span class="badge badge-info" style="font-size:10px;"><%= l(:label_checklist_converted_badge) %></span>
+    </span>
+  <% elsif checklist_item.is_section %>
     <span class="checklist-section-title"><strong><%= checklist_item.subject.strip %></strong></span>
   <% else %>
     <%= check_box_tag 'checklist_item', '1', checklist_item.is_done,
@@ -23,7 +29,15 @@
   <% end %>
 
   <span class="checklist-item-actions">
-    <% if !checklist_item.is_section && User.current.allowed_to?(:log_time, checklist_item.issue.project) %>
+    <% if !checklist_item.is_section && !checklist_item.converted_issue_id.present? && User.current.allowed_to?(:add_issues, checklist_item.issue.project) %>
+      <%= link_to '', issue_checklist_convert_to_issue_path(checklist_item.issue, checklist_item),
+                  method: :post,
+                  class: 'icon icon-duplicate',
+                  title: l(:button_convert_to_sub_issue),
+                  data: { confirm: l(:text_are_you_sure_convert_checklist) } %>
+    <% end %>
+
+    <% if !checklist_item.is_section && !checklist_item.converted_issue_id.present? && User.current.allowed_to?(:log_time, checklist_item.issue.project) %>
       <a href="#" onclick="openLogTimeModal('<%= checklist_item.id %>', '<%= escape_javascript(checklist_item.subject) %>'); return false;"
          class="icon icon-time" title="<%= l(:button_log_time) %>"></a>
     <% end %>

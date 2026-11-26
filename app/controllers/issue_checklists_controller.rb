@@ -1,6 +1,6 @@
 class IssueChecklistsController < ApplicationController
-  before_action :find_checklist_item, only: [:done, :delete, :update, :destroy, :log_time]
-  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :log_time, :index, :create]
+  before_action :find_checklist_item, only: [:done, :delete, :update, :destroy, :log_time, :convert_to_issue, :my_done, :my_delete]
+  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :log_time, :convert_to_issue, :index, :create]
 
   accept_api_auth :index, :create, :show, :update, :destroy, :done
 
@@ -10,15 +10,108 @@ class IssueChecklistsController < ApplicationController
     respond_to do |format|
       format.json do
         render json: @issue.checklist.as_json(
-          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date],
+          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id],
           include: { assigned_to: { only: [:id, :name] } }
         )
       end
       format.xml do
         render xml: @issue.checklist.to_xml(
-          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]
+          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id]
         )
       end
+    end
+  end
+
+  def convert_to_issue
+    (render_403; return false) unless User.current.allowed_to?(:add_issues, @project)
+
+    child_issue = Issue.new(
+      project: @project,
+      tracker: @issue.tracker,
+      category: @issue.category,
+      fixed_version: @issue.fixed_version,
+      priority: @issue.priority,
+      author: User.current,
+      parent_id: @issue.id,
+      subject: @checklist_item.subject.strip,
+      description: "Promoted from checklist on issue ##{@issue.id}",
+      assigned_to_id: @checklist_item.assigned_to_id || @issue.assigned_to_id,
+      due_date: @checklist_item.due_date
+    )
+
+    if child_issue.save
+      @checklist_item.update(converted_issue_id: child_issue.id, is_done: true)
+
+      if RedmineIssueChecklist.settings[:save_log]
+        journal = @issue.init_journal(User.current)
+        journal.details << JournalDetail.new(
+          property: 'attr',
+          prop_key: 'checklist',
+          old_value: @checklist_item.subject,
+          value: "[##{child_issue.id} #{child_issue.subject}]"
+        )
+        journal.notes = l(:notice_checklist_converted_journal_note, id: child_issue.id, subject: child_issue.subject)
+        journal.save
+      end
+
+      flash[:notice] = l(:notice_checklist_converted_successfully, id: child_issue.id)
+    else
+      flash[:error] = child_issue.errors.full_messages.join(', ')
+    end
+
+    respond_to do |format|
+      format.js
+      format.html { redirect_to issue_path(@issue) }
+    end
+  end
+
+  # Standalone My Page endpoints
+  def my_quick_add
+    subject = params[:subject].to_s.strip
+    if subject.present?
+      assigned_to_id = params[:assigned_to_id].presence || User.current.id
+      is_daily = params[:is_daily] == '1'
+      is_sec = params[:is_section] == '1' || subject.start_with?('#')
+      clean_subject = subject.delete_prefix('#').strip
+
+      @item = IssueChecklist.create(
+        user_id: User.current.id,
+        author_id: User.current.id,
+        assigned_to_id: assigned_to_id,
+        subject: clean_subject,
+        is_section: is_sec,
+        is_daily: is_daily,
+        is_done: false,
+        due_date: params[:due_date].presence
+      )
+    end
+
+    respond_to do |format|
+      format.js
+      format.html { redirect_to my_page_path }
+    end
+  end
+
+  def my_done
+    (render_403; return false) unless @checklist_item.editable_by?(User.current)
+
+    @checklist_item.is_done = !@checklist_item.is_done
+    @checklist_item.last_done_date = @checklist_item.is_done ? Date.today : nil
+    @checklist_item.save
+
+    respond_to do |format|
+      format.js
+      format.html { redirect_to my_page_path }
+    end
+  end
+
+  def my_delete
+    (render_403; return false) unless @checklist_item.editable_by?(User.current)
+
+    @checklist_item.destroy
+    respond_to do |format|
+      format.js
+      format.html { redirect_to my_page_path }
     end
   end
 
@@ -148,19 +241,44 @@ class IssueChecklistsController < ApplicationController
 
     subject = params[:subject].to_s.strip
     if subject.present?
-      is_section = params[:is_section] == '1' || subject.start_with?('#')
-      clean_subject = subject.delete_prefix('#').strip
+      # Check if user requested creating a sub-issue directly
+      if params[:create_mode] == 'sub_issue' && User.current.allowed_to?(:add_issues, @project)
+        child = Issue.new(
+          project: @project,
+          tracker: @issue.tracker,
+          category: @issue.category,
+          fixed_version: @issue.fixed_version,
+          priority: @issue.priority,
+          author: User.current,
+          parent_id: @issue.id,
+          subject: subject,
+          assigned_to_id: params[:assigned_to_id].presence || @issue.assigned_to_id,
+          due_date: params[:due_date].presence
+        )
+        if child.save
+          @item = @issue.checklist.create(
+            subject: subject,
+            is_section: false,
+            is_done: true,
+            converted_issue_id: child.id,
+            position: @issue.checklist.count + 1
+          )
+        end
+      else
+        is_section = params[:is_section] == '1' || subject.start_with?('#')
+        clean_subject = subject.delete_prefix('#').strip
 
-      @item = @issue.checklist.create(
-        subject: clean_subject,
-        is_section: is_section,
-        is_done: false,
-        assigned_to_id: params[:assigned_to_id].presence,
-        due_date: params[:due_date].presence,
-        position: @issue.checklist.count + 1
-      )
+        @item = @issue.checklist.create(
+          subject: clean_subject,
+          is_section: is_section,
+          is_done: false,
+          assigned_to_id: params[:assigned_to_id].presence,
+          due_date: params[:due_date].presence,
+          position: @issue.checklist.count + 1
+        )
+      end
 
-      if RedmineIssueChecklist.settings[:save_log] && @item.persisted?
+      if RedmineIssueChecklist.settings[:save_log] && @item && @item.persisted?
         journal = @issue.init_journal(User.current)
         journal.details << JournalDetail.new(
           property: 'attr',
@@ -282,7 +400,7 @@ class IssueChecklistsController < ApplicationController
 
   def find_checklist_item
     @checklist_item = IssueChecklist.find(params[:id] || params[:checklist_item_id])
-    @project        = @checklist_item.issue.project
+    @project        = @checklist_item.issue.project if @checklist_item.issue.present?
   end
 
   def find_issue

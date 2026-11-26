@@ -1,0 +1,127 @@
+<%
+  settings = Setting.plugin_redmine_issue_checklist
+  enabled = settings.is_a?(Hash) ? (settings[:show_in_my_page].to_s != '0' && settings['show_in_my_page'].to_s != '0') : true
+%>
+<% if enabled %>
+  <%
+    user = User.current
+    
+    # 1. Standalone Daily / Personal Routine Checklists (auto-reset if new day)
+    daily_items = IssueChecklist.where(issue_id: nil).for_user_or_team(user).order(:position, :id)
+    daily_items.each(&:check_daily_reset!)
+
+    # 2. Issue-driven Checklists
+    assigned_issue_items = IssueChecklist.joins(:issue)
+                                         .where(issues: { project_id: Project.visible })
+                                         .where(is_done: false, is_section: false, converted_issue_id: nil)
+                                         .where('issue_checklists.assigned_to_id = :uid OR (issue_checklists.assigned_to_id IS NULL AND issues.assigned_to_id = :uid)', uid: user.id)
+                                         .order('issue_checklists.due_date ASC, issues.id DESC')
+                                         .limit(15)
+  %>
+  <div class="mypage-checklist-block box">
+    <div class="contextual">
+      <a href="#" onclick="$('#my_daily_checklist_form_box').toggle(); return false;" class="icon icon-add"><%= l(:button_add) %> <%= l(:label_checklist_daily_item) %></a>
+    </div>
+    <h3><%= l(:label_checklist_my_page_title) %></h3>
+
+    <!-- Quick Add Form for Personal / Team Daily Task -->
+    <div id="my_daily_checklist_form_box" style="display:none; margin-bottom: 12px; padding: 10px; background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px;">
+      <%= form_with url: my_checklist_quick_add_path, method: :post, local: true do |f| %>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <input type="text" name="subject" placeholder="<%= l(:text_checklist_daily_placeholder) %>" style="flex-grow:1; min-width:200px;" required />
+          <select name="assigned_to_id">
+            <option value="<%= user.id %>"><%= l(:label_checklist_for_me) %></option>
+            <% user.groups.each do |grp| %>
+              <option value="<%= grp.id %>"><%= l(:label_group) %>: <%= grp.name %></option>
+            <% end %>
+          </select>
+          <label style="display:flex; align-items:center; font-size:12px; gap:4px;">
+            <input type="checkbox" name="is_daily" value="1" checked />
+            <%= l(:label_checklist_recurring_daily) %>
+          </label>
+          <button type="submit" class="button-small button-primary"><%= l(:button_add) %></button>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Section 1: Standalone Daily / Personal Routine Checklists -->
+    <% if daily_items.any? %>
+      <p style="margin-bottom: 4px;"><strong><%= l(:label_checklist_daily_routine) %>:</strong></p>
+      <table class="list mypage-checklist-table" style="margin-bottom: 14px;">
+        <tbody>
+          <% daily_items.each do |item| %>
+            <tr id="my_daily_item_<%= item.id %>" class="<%= cycle('odd', 'even') %> <%= 'is-done-checklist-item' if item.is_done %>">
+              <td width="30">
+                <%= check_box_tag "daily_check_#{item.id}", '1', item.is_done,
+                    onclick: "$.post('#{my_checklist_done_path(item.id)}', function(){ location.reload(); });" %>
+              </td>
+              <td>
+                <span class="<%= 'checklist-done-text' if item.is_done %>"><strong><%= item.subject.strip %></strong></span>
+                <% if item.is_daily? %>
+                  <span class="checklist-pill" style="font-size:10px;">&#128257; <%= l(:label_checklist_daily_badge) %></span>
+                <% end %>
+                <% if item.assigned_to.is_a?(Group) %>
+                  <span class="checklist-pill" style="font-size:10px; background:#e8f4fd;">&#128101; <%= item.assigned_to.name %></span>
+                <% end %>
+              </td>
+              <td width="40" class="buttons">
+                <%= link_to '', my_checklist_delete_path(item.id), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <!-- Section 2: Issue-linked Pending Checklists -->
+    <p style="margin-bottom: 4px;"><strong><%= l(:label_checklist_issue_tasks) %>:</strong></p>
+    <% if assigned_issue_items.any? %>
+      <table class="list mypage-checklist-table">
+        <thead>
+          <tr>
+            <th width="30"></th>
+            <th><%= l(:field_issue) %></th>
+            <th><%= l(:field_subject) %></th>
+            <th><%= l(:field_due_date) %></th>
+            <th width="60"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% assigned_issue_items.each do |item| %>
+            <tr id="my_checklist_item_<%= item.id %>" class="<%= cycle('odd', 'even') %>">
+              <td>
+                <%= check_box_tag "mypage_checklist_#{item.id}", '1', false,
+                    title: l(:button_check),
+                    onclick: "$.post('#{url_for(controller: 'issue_checklists', action: 'done', checklist_item_id: item.id)}', function(){ $('#my_checklist_item_#{item.id}').fadeOut(); });"
+                %>
+              </td>
+              <td>
+                <%= link_to_issue(item.issue, tracker: false) %>
+              </td>
+              <td>
+                <%= item.subject.strip %>
+              </td>
+              <td>
+                <% if item.due_date.present? %>
+                  <span class="checklist-pill checklist-pill-due <%= 'checklist-pill-overdue' if item.due_date < Date.today %>">
+                    <%= format_date(item.due_date) %>
+                  </span>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+              <td class="buttons">
+                <% if User.current.allowed_to?(:log_time, item.issue.project) %>
+                  <%= link_to '', new_issue_time_entry_path(item.issue, time_entry: { comments: "Checklist: #{item.subject}" }),
+                              class: 'icon icon-time', title: l(:button_log_time) %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="nodata"><%= l(:label_checklist_no_pending_items) %></p>
+    <% end %>
+  </div>
+<% end %>

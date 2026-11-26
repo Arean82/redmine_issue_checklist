@@ -19,7 +19,8 @@ Redmine::Plugin.register :redmine_issue_checklist do
   settings default: {
     save_log:           true,
     issue_done_ratio:   false,
-    show_in_admin_menu: true
+    show_in_admin_menu: true,
+    show_in_my_page:    true
   }, partial: 'settings/issue_checklist'
 
   Redmine::AccessControl.map do |map|

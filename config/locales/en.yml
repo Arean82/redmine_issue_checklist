@@ -3,8 +3,30 @@ en:
   field_checklist: Checklist
   label_checklist_save_log: Save changes to the issue log
   label_checklist_done_ratio: Automatically change the issue done ratio
+  label_checklist_block_issue_closure: Block issue closure if checklist items are incomplete
+  text_checklist_block_issue_closure_info: Prevent changing issue status to Closed or Resolved when open checklist items remain.
+  error_cannot_close_issue_with_open_checklists: "Cannot close issue because the following checklist items are still pending: %{items}"
   label_checklist_show_in_admin_menu: Display Checklist Templates in Administration menu
   text_checklist_show_in_admin_menu_info: Show the Checklist Templates link under Administration (/admin).
+  label_checklist_show_in_my_page: Enable My Checklists widget on My Page
+  text_checklist_show_in_my_page_info: Allow users to add a personalized Checklist overview widget on /my/page.
+  label_checklist_my_page_title: My Checklists & Daily Routine
+  label_checklist_no_pending_items: No pending checklist items assigned to you.
+  label_checklist_daily_item: Daily Task
+  label_checklist_daily_routine: Daily Routine / Team Tasks
+  label_checklist_issue_tasks: Pending Issue Tasks
+  text_checklist_daily_placeholder: What needs to be done today?
+  label_checklist_for_me: Myself
+  label_checklist_recurring_daily: Reset daily (recurring)
+  label_checklist_daily_badge: Daily
+  button_convert_to_sub_issue: Convert to Sub-Issue
+  text_are_you_sure_convert_checklist: Are you sure you want to convert this checklist item into a sub-issue?
+  label_checklist_converted_badge: Sub-Issue
+  notice_checklist_converted_successfully: "Checklist item was successfully converted to sub-issue #%{id}."
+  notice_checklist_converted_journal_note: "Converted checklist item into sub-issue #%{id}: %{subject}"
+  label_checklist_create_mode: Task Type
+  label_checklist_mode_task: Checklist Item
+  label_checklist_mode_sub_issue: Sub-Issue
   permission_view_checklists: View checklist items
   permission_done_checklists: Check/uncheck checklist items
   permission_edit_checklists: Edit checklist items
@@ -46,3 +68,6 @@ en:
   error_no_checklist_to_clone: Source issue does not have any checklist items.
   notice_time_logged_successfully: "%{hours} hours logged successfully for this checklist task."
   error_invalid_spent_hours: "Please enter valid hours to log."
+  my:
+    blocks:
+      issue_checklists: My Checklists & Daily Routine
