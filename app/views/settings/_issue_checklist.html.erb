@@ -1,35 +1,109 @@
 <% @settings = {} unless @settings.is_a? Hash %>
-<p>
-  <label><%= l(:label_checklist_block_issue_closure) %></label>
-  <%= hidden_field_tag 'settings[block_issue_closure]', 0 %>
-  <%= check_box_tag 'settings[block_issue_closure]', 1, @settings[:block_issue_closure] == '1' || @settings[:block_issue_closure] == true %>
-  <em class="info"><%= l(:text_checklist_block_issue_closure_info) %></em>
-</p>
 
-<p>
-  <label><%= l(:label_checklist_show_in_admin_menu) %></label>
-  <%= hidden_field_tag 'settings[show_in_admin_menu]', 0 %>
-  <%= check_box_tag 'settings[show_in_admin_menu]', 1, @settings[:show_in_admin_menu] != '0' && @settings[:show_in_admin_menu] != false %>
-  <em class="info"><%= l(:text_checklist_show_in_admin_menu_info) %></em>
-</p>
+<fieldset class="box tabular">
+  <legend><%= l(:label_checklist_settings_section_general) %></legend>
 
-<p>
-  <label><%= l(:label_checklist_show_in_my_page) %></label>
-  <%= hidden_field_tag 'settings[show_in_my_page]', 0 %>
-  <%= check_box_tag 'settings[show_in_my_page]', 1, @settings[:show_in_my_page] != '0' && @settings[:show_in_my_page] != false %>
-  <em class="info"><%= l(:text_checklist_show_in_my_page_info) %></em>
-</p>
-
-<p>
-  <label><%= l(:label_checklist_save_log) %></label>
-  <%= hidden_field_tag 'settings[save_log]', 0 %>
-  <%= check_box_tag 'settings[save_log]', 1, @settings[:save_log] != '0' && @settings[:save_log] != false %>
-</p>
-
-<% if Setting.issue_done_ratio == 'issue_field' %>
   <p>
-    <label><%= l(:label_checklist_done_ratio) %></label>
-    <%= hidden_field_tag 'settings[issue_done_ratio]', 0 %>
-    <%= check_box_tag 'settings[issue_done_ratio]', 1, @settings[:issue_done_ratio] == '1' || @settings[:issue_done_ratio] == true %>
+    <label><%= l(:label_checklist_block_issue_closure) %></label>
+    <%= hidden_field_tag 'settings[block_issue_closure]', 0 %>
+    <%= check_box_tag 'settings[block_issue_closure]', 1, @settings[:block_issue_closure] == '1' || @settings[:block_issue_closure] == true %>
+    <em class="info"><%= l(:text_checklist_block_issue_closure_info) %></em>
   </p>
-<% end %>
+
+  <p>
+    <label><%= l(:label_checklist_save_log) %></label>
+    <%= hidden_field_tag 'settings[save_log]', 0 %>
+    <%= check_box_tag 'settings[save_log]', 1, @settings[:save_log] != '0' && @settings[:save_log] != false %>
+    <em class="info"><%= l(:text_checklist_save_log_info) %></em>
+  </p>
+
+  <% if Setting.issue_done_ratio == 'issue_field' %>
+    <p>
+      <label><%= l(:label_checklist_done_ratio) %></label>
+      <%= hidden_field_tag 'settings[issue_done_ratio]', 0 %>
+      <%= check_box_tag 'settings[issue_done_ratio]', 1, @settings[:issue_done_ratio] == '1' || @settings[:issue_done_ratio] == true %>
+      <em class="info"><%= l(:text_checklist_done_ratio_info) %></em>
+    </p>
+  <% end %>
+</fieldset>
+
+<fieldset class="box tabular">
+  <legend><%= l(:label_checklist_settings_section_issue_view) %></legend>
+
+  <p>
+    <label><%= l(:label_checklist_enable_bulk_actions) %></label>
+    <%= hidden_field_tag 'settings[enable_bulk_actions]', 0 %>
+    <%= check_box_tag 'settings[enable_bulk_actions]', 1, @settings[:enable_bulk_actions] != '0' && @settings[:enable_bulk_actions] != false %>
+    <em class="info"><%= l(:text_checklist_enable_bulk_actions_info) %></em>
+  </p>
+
+  <p>
+    <label><%= l(:label_checklist_format_in_pdf) %></label>
+    <%= hidden_field_tag 'settings[format_checklist_in_pdf]', 0 %>
+    <%= check_box_tag 'settings[format_checklist_in_pdf]', 1, @settings[:format_checklist_in_pdf] != '0' && @settings[:format_checklist_in_pdf] != false %>
+    <em class="info"><%= l(:text_checklist_format_in_pdf_info) %></em>
+  </p>
+</fieldset>
+
+<fieldset class="box tabular">
+  <legend><%= l(:label_checklist_settings_section_templates) %></legend>
+
+  <p>
+    <label><%= l(:label_checklist_show_in_admin_menu) %></label>
+    <%= hidden_field_tag 'settings[show_in_admin_menu]', 0 %>
+    <%= check_box_tag 'settings[show_in_admin_menu]', 1, @settings[:show_in_admin_menu] != '0' && @settings[:show_in_admin_menu] != false %>
+    <em class="info"><%= l(:text_checklist_show_in_admin_menu_info) %></em>
+  </p>
+
+  <p>
+    <label><%= l(:label_checklist_enable_template_category_filter) %></label>
+    <%= hidden_field_tag 'settings[enable_template_category_filter]', 0 %>
+    <%= check_box_tag 'settings[enable_template_category_filter]', 1, @settings[:enable_template_category_filter] != '0' && @settings[:enable_template_category_filter] != false %>
+    <em class="info"><%= l(:text_checklist_enable_template_category_filter_info) %></em>
+  </p>
+
+  <p>
+    <label><%= l(:label_checklist_sub_issue_redirect_on_error) %></label>
+    <%= hidden_field_tag 'settings[sub_issue_redirect_on_error]', 0 %>
+    <%= check_box_tag 'settings[sub_issue_redirect_on_error]', 1, @settings[:sub_issue_redirect_on_error] != '0' && @settings[:sub_issue_redirect_on_error] != false %>
+    <em class="info"><%= l(:text_checklist_sub_issue_redirect_on_error_info) %></em>
+  </p>
+</fieldset>
+
+<fieldset class="box tabular">
+  <legend><%= l(:label_checklist_settings_section_my_page) %></legend>
+
+  <p>
+    <label><%= l(:label_checklist_show_in_my_page) %></label>
+    <%= hidden_field_tag 'settings[show_in_my_page]', 0 %>
+    <%= check_box_tag 'settings[show_in_my_page]', 1, @settings[:show_in_my_page] != '0' && @settings[:show_in_my_page] != false %>
+    <em class="info"><%= l(:text_checklist_show_in_my_page_info) %></em>
+  </p>
+
+  <p>
+    <label><%= l(:label_checklist_my_page_show_team_tabs) %></label>
+    <%= hidden_field_tag 'settings[my_page_show_team_tabs]', 0 %>
+    <%= check_box_tag 'settings[my_page_show_team_tabs]', 1, @settings[:my_page_show_team_tabs] != '0' && @settings[:my_page_show_team_tabs] != false %>
+    <em class="info"><%= l(:text_checklist_my_page_show_team_tabs_info) %></em>
+  </p>
+
+  <p>
+    <label><%= l(:label_checklist_daily_reset_mode) %></label>
+    <%= select_tag 'settings[daily_routine_reset_mode]',
+        options_for_select([
+          [l(:label_checklist_reset_mode_on_access), 'on_access'],
+          [l(:label_checklist_reset_mode_cron), 'cron']
+        ], @settings[:daily_routine_reset_mode] || 'on_access') %>
+    <em class="info"><%= l(:text_checklist_daily_reset_mode_info) %></em>
+  </p>
+
+  <div style="background: #f8f9fa; border: 1px solid #dcdfe6; border-radius: 4px; padding: 10px 14px; margin: 10px 0 0 180px;">
+    <strong><%= l(:label_checklist_cron_command_title) %>:</strong>
+    <p style="margin: 4px 0 6px 0; font-size: 11px; color: #555;">
+      <%= l(:text_checklist_cron_command_info) %>
+    </p>
+    <code style="background: #eef1f6; padding: 4px 8px; border-radius: 3px; display: block; font-size: 12px; font-family: monospace;">
+      0 0 * * * cd /data/redmine && bundle exec rake redmine:issue_checklist:reset_daily_routines RAILS_ENV=production
+    </code>
+  </div>
+</fieldset>

@@ -7,6 +7,28 @@
 
 <h2><%= l(:label_checklist_template_plural) %></h2>
 
+<% 
+  settings = RedmineIssueChecklist.settings
+  enable_cat_filter = settings.is_a?(Hash) ? (settings[:enable_template_category_filter].to_s != '0' && settings['enable_template_category_filter'].to_s != '0') : true
+%>
+<% if enable_cat_filter && @categories.any? %>
+  <fieldset class="box" style="margin-bottom: 12px; padding: 8px 12px;">
+    <legend><%= l(:label_filter_plural) %></legend>
+    <form method="get" action="<%= @project ? project_checklist_templates_path(@project) : checklist_templates_path %>">
+      <label for="category_id"><strong><%= l(:field_category) %>:</strong></label>
+      <select name="category_id" id="category_id" onchange="this.form.submit();" style="margin: 0 8px;">
+        <option value=""><%= "--- #{l(:label_all)} ---" %></option>
+        <% @categories.each do |cat| %>
+          <option value="<%= cat.id %>" <%= 'selected="selected"' if @selected_category_id == cat.id.to_s %>><%= cat.name %></option>
+        <% end %>
+      </select>
+      <% if @selected_category_id.present? %>
+        <%= link_to l(:button_clear), @project ? project_checklist_templates_path(@project) : checklist_templates_path, class: 'icon icon-reload' %>
+      <% end %>
+    </form>
+  </fieldset>
+<% end %>
+
 <% if @templates.any? %>
   <table class="list">
     <thead>

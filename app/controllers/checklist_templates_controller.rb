@@ -7,6 +7,11 @@ class ChecklistTemplatesController < ApplicationController
     @templates = @templates.for_project(@project) if @project
     @categories = ChecklistTemplateCategory.order(:position)
 
+    if params[:category_id].present?
+      @selected_category_id = params[:category_id].to_s
+      @templates = @templates.where(category_id: @selected_category_id)
+    end
+
     respond_to do |format|
       format.html
       format.json { render json: @templates.to_json(methods: :items) }

@@ -1,0 +1,17 @@
+api.array :checklists do
+  @checklists.each do |checklist|
+    api.checklist do
+      api.id checklist.id
+      api.issue_id checklist.issue_id
+      api.subject checklist.subject
+      api.is_done checklist.is_done
+      api.is_section checklist.is_section
+      api.position checklist.position
+      api.assigned_to(:id => checklist.assigned_to_id, :name => checklist.assigned_to.name) unless checklist.assigned_to.nil?
+      api.due_date checklist.due_date
+      api.converted_issue_id checklist.converted_issue_id
+      api.created_at checklist.created_at
+      api.updated_at checklist.updated_at
+    end
+  end
+end

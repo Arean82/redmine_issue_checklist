@@ -45,12 +45,27 @@
     </div>
 
     <!-- Section 1: Standalone Daily / Personal Routine Checklists -->
+    <% 
+      show_team_tabs = settings.is_a?(Hash) ? (settings[:my_page_show_team_tabs].to_s != '0' && settings['my_page_show_team_tabs'].to_s != '0') : true
+      my_personal_items = daily_items.select { |i| i.assigned_to_id == user.id || (i.assigned_to_id.nil? && i.user_id == user.id) }
+      team_group_items = daily_items.reject { |i| my_personal_items.include?(i) }
+    %>
     <% if daily_items.any? %>
-      <p style="margin-bottom: 4px;"><strong><%= l(:label_checklist_daily_routine) %>:</strong></p>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+        <p style="margin: 0;"><strong><%= l(:label_checklist_daily_routine) %>:</strong></p>
+        <% if show_team_tabs && team_group_items.any? %>
+          <div class="checklist-tab-filter" style="display:inline-flex; gap:4px; font-size:12px;">
+            <button type="button" class="button-small" id="btn_filter_my_tasks" onclick="$('.row-team-task').hide(); $('.row-personal-task').show(); $(this).addClass('button-primary'); $('#btn_filter_team_tasks, #btn_filter_all_tasks').removeClass('button-primary');"><%= l(:label_checklist_filter_my_tasks) %> (<%= my_personal_items.size %>)</button>
+            <button type="button" class="button-small" id="btn_filter_team_tasks" onclick="$('.row-personal-task').hide(); $('.row-team-task').show(); $(this).addClass('button-primary'); $('#btn_filter_my_tasks, #btn_filter_all_tasks').removeClass('button-primary');"><%= l(:label_checklist_filter_team_tasks) %> (<%= team_group_items.size %>)</button>
+            <button type="button" class="button-small button-primary" id="btn_filter_all_tasks" onclick="$('.row-personal-task, .row-team-task').show(); $(this).addClass('button-primary'); $('#btn_filter_my_tasks, #btn_filter_team_tasks').removeClass('button-primary');"><%= l(:label_all) %> (<%= daily_items.size %>)</button>
+          </div>
+        <% end %>
+      </div>
       <table class="list mypage-checklist-table" style="margin-bottom: 14px;">
         <tbody>
           <% daily_items.each do |item| %>
-            <tr id="my_daily_item_<%= item.id %>" class="<%= cycle('odd', 'even') %> <%= 'is-done-checklist-item' if item.is_done %>">
+            <% is_team_task = team_group_items.include?(item) %>
+            <tr id="my_daily_item_<%= item.id %>" class="<%= cycle('odd', 'even') %> <%= 'is-done-checklist-item' if item.is_done %> <%= is_team_task ? 'row-team-task' : 'row-personal-task' %>">
               <td width="30">
                 <%= check_box_tag "daily_check_#{item.id}", '1', item.is_done,
                     onclick: "$.post('#{my_checklist_done_path(item.id)}', function(){ location.reload(); });" %>
@@ -62,6 +77,8 @@
                 <% end %>
                 <% if item.assigned_to.is_a?(Group) %>
                   <span class="checklist-pill" style="font-size:10px; background:#e8f4fd;">&#128101; <%= item.assigned_to.name %></span>
+                <% elsif item.assigned_to.present? && item.assigned_to_id != user.id %>
+                  <span class="checklist-pill" style="font-size:10px; background:#f0f0f0;">&#128100; <%= item.assigned_to.name %></span>
                 <% end %>
               </td>
               <td width="40" class="buttons">

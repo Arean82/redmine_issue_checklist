@@ -58,17 +58,44 @@ module RedmineIssueChecklist
         checklist_items ||= []
         old_checklist = checklist.collect(&:info).join("\n")
 
-        checklist.destroy_all
+        existing_items = checklist.to_a
+        updated_ids = []
+
         checklist_items.each_with_index do |cli, idx|
           cli_hash = cli.respond_to?(:to_unsafe_h) ? cli.to_unsafe_h : cli.to_h
-          checklist << IssueChecklist.new(
-            is_done: cli_hash[:is_done] == '1' || cli_hash['is_done'] == '1' || cli_hash[:is_done] == true || cli_hash['is_done'] == true,
-            is_section: cli_hash[:is_section] == '1' || cli_hash['is_section'] == '1' || cli_hash[:is_section] == true || cli_hash['is_section'] == true,
-            subject: cli_hash[:subject] || cli_hash['subject'],
-            position: idx + 1
-          )
+          item_id = cli_hash[:id] || cli_hash['id']
+          item = existing_items.detect { |ci| ci.id.to_s == item_id.to_s } if item_id.present?
+
+          is_done_val = cli_hash[:is_done] == '1' || cli_hash['is_done'] == '1' || cli_hash[:is_done] == true || cli_hash['is_done'] == true
+          is_sec_val = cli_hash[:is_section] == '1' || cli_hash['is_section'] == '1' || cli_hash[:is_section] == true || cli_hash['is_section'] == true
+          subj_val = cli_hash[:subject] || cli_hash['subject']
+
+          if item
+            item.subject = subj_val
+            item.is_done = is_done_val
+            item.is_section = is_sec_val
+            item.position = idx + 1
+            item.save if item.changed?
+            updated_ids << item.id
+          else
+            new_item = IssueChecklist.new(
+              issue_id: id,
+              is_done: is_done_val,
+              is_section: is_sec_val,
+              subject: subj_val,
+              position: idx + 1
+            )
+            checklist << new_item
+            updated_ids << new_item.id if new_item.persisted?
+          end
         end
 
+        # Remove items that were deleted from the form
+        existing_items.each do |ci|
+          ci.destroy unless updated_ids.include?(ci.id)
+        end
+
+        checklist.reload
         new_checklist = checklist.collect(&:info).join("\n")
 
         if current_journal && create_journal && (new_checklist != old_checklist)

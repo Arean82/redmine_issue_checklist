@@ -3,7 +3,7 @@
 [![Redmine 5.x / 6.x / 7.0+](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x%20%7C%207.0%2B-blue.svg)](http://www.redmine.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-Enterprise issue checklist and task breakdown platform for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters with visual progress bars, strict issue closure validation (DoD), checklist-to-sub-issue conversion, standalone daily/team checklists on My Page, journal audit history, email notifications, sub-task assignees, due dates, per-item spent time logging, inline quick-add, interactive Markdown/TXT file import with live preview, and full REST API support.
+Enterprise issue checklist and task breakdown platform for Redmine, providing template workflows, automatic tracker task population, structured checklist custom fields, issue query filters with visual progress bars, strict issue closure validation (DoD), checklist-to-sub-issue conversion, standalone daily/team checklists on My Page, journal audit history, email notifications, sub-task assignees, due dates, per-item spent time logging, inline quick-add, bulk actions, mobile touch sorting, PDF exports, interactive Markdown/TXT file import with live preview, and complete Redmine-standard REST API support (JSON & XML).
 
 Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Arean82)).
 
@@ -18,12 +18,16 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
   - 1-click promotion icon next to any checklist item converts it into a formal child issue.
   - Automatically inherits parent issue properties: Project, Tracker, Category, Target Version, Assignee, Priority, and Due Date.
   - Replaces the checklist item with a clickable `#ID` link in the checklist and logs a note in the issue journal.
+  - If project validation rules require additional custom fields, automatically redirects to the new issue form pre-filled.
   - Quick-add bar also offers a direct `[Sub-Issue]` option.
 - **Standalone Daily & Team Checklists on My Page**:
   - Addable to `/my/page` via the *Add block...* dropdown.
   - Two integrated views: **Daily Routine / Team Tasks** (standalone recurring items with auto-daily uncheck) and **Pending Issue Tasks**.
-  - Can be assigned to an individual user or a Redmine Group/Team.
-  - Admin toggle in plugin configuration.
+  - Filter pills to view **My Tasks** vs. **Team Tasks**.
+  - Automated midnight reset option via background cron/rake task.
+- **Bulk Actions**: 1-click **Check all** and **Uncheck all** toolbar buttons.
+- **Mobile Touch Sorting**: Touch drag-and-drop ordering powered by touch-punch polyfill.
+- **PDF Export Formatting**: Injects structured checklists (`[X]` / `[ ]`) directly into Redmine's native issue PDF exports.
 - **Interactive Issue Checklists**: Add, sort, toggle, and delete checklist items directly on issues with real-time UI updates.
 - **Direct Inline Quick-Add**: Add checklist items and section headers directly from the issue view with assignees and due dates without opening full edit forms.
 - **Per-Item Spent Time Logging**: Clock icon next to each checklist item to log spent time and activity with comments automatically referencing the task.
@@ -36,13 +40,10 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 - **Assignees & Due Dates per Item**: Assign team members and deadlines to individual checklist tasks with overdue indicators.
 - **Visual Progress Bar & Filter**: Real-time progress bar reflecting completion percentage and a quick "Hide Completed" toggle button.
 - **Checklist Sections & Groups**: Group checklist items into distinct logical sections by prefixing headers with `#`.
-- **Checklist Templates & Categories**: Create reusable checklist templates organized by category for project-wide or global use, with a direct 1-click category creator inside the template form.
+- **Checklist Templates & Categories**: Create reusable checklist templates organized by category for project-wide or global use, with category filtering and breadcrumb navigation.
 - **Automatic Checklists by Tracker**: Designate default checklist templates for specific trackers (e.g. *Bug*, *Feature*, *QA Task*) so newly created issues automatically inherit the checklist.
 - **Checklist Cloning & Export**: Quick-clone checklist items from any other issue, or export checklists directly to Markdown (`.md`).
-- **REST API Endpoints**:
-  - `GET /issues/:id/checklists.json` - Retrieve all checklist items (with assignees & dates).
-  - `POST /issues/:id/checklists.json` - Programmatically add checklist items.
-  - `PUT /issues/:id/checklists/:item_id/done.json` - Programmatically check/uncheck items.
+- **Standard Redmine REST API**: Complete CRUD + Done action support in both JSON and XML conforming to standard Redmine API conventions.
 - **Issue Query Columns & Filters**:
   - Adds a **Checklist** column in the issues list (`/issues`) displaying task progress (`completed/total`).
   - Search filter: **Checklist item contains** text search.
@@ -53,34 +54,87 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
 
 ---
 
-## Compatibility
+## REST API Reference
 
-- Redmine 5.0+, 6.0+, and 7.0+
-- Ruby 3.2+ / 4.0+
-- Rails 7.x / 8.x (Zeitwerk autoloading compliant)
-- PostgreSQL, MySQL, SQLite3
+All endpoints support authentication via Redmine API Access Key (`key=...` parameter or `X-Redmine-API-Key: ...` header) or HTTP Basic Authentication. Both `.json` and `.xml` formats are supported.
 
----
+### 1. List Issue Checklists
+- **URL**: `GET /issues/:issue_id/checklists.json`
+- **Response**:
+```json
+{
+  "checklists": [
+    {
+      "id": 12,
+      "issue_id": 45,
+      "subject": "Verify API responses",
+      "is_done": false,
+      "is_section": false,
+      "position": 1,
+      "assigned_to": { "id": 1, "name": "Admin" },
+      "due_date": "2026-12-01",
+      "converted_issue_id": null,
+      "created_at": "2026-11-26T10:00:00Z",
+      "updated_at": "2026-11-26T10:00:00Z"
+    }
+  ]
+}
+```
 
-## Installation
+### 2. Show Checklist Item
+- **URL**: `GET /issues/:issue_id/checklists/:id.json`
+- **Response**:
+```json
+{
+  "checklist": {
+    "id": 12,
+    "issue_id": 45,
+    "subject": "Verify API responses",
+    "is_done": false,
+    "is_section": false,
+    "position": 1,
+    "assigned_to": { "id": 1, "name": "Admin" },
+    "due_date": "2026-12-01"
+  }
+}
+```
 
-1. Clone the repository into your Redmine `plugins` directory:
-   ```bash
-   cd /data/redmine/plugins
-   git clone https://github.com/Arean82/redmine_issue_checklist.git
-   ```
+### 3. Create Checklist Item
+- **URL**: `POST /issues/:issue_id/checklists.json`
+- **Payload**:
+```json
+{
+  "checklist": {
+    "subject": "Deploy to staging",
+    "is_section": false,
+    "assigned_to_id": 1,
+    "due_date": "2026-12-05"
+  }
+}
+```
+- **Response**: Status `201 Created` with `Location` header and created checklist object.
 
-2. Run plugin database migrations:
-   ```bash
-   bundle exec rake redmine:plugins:migrate RAILS_ENV=production
-   ```
+### 4. Update Checklist Item
+- **URL**: `PUT /issues/:issue_id/checklists/:id.json`
+- **Payload**:
+```json
+{
+  "checklist": {
+    "subject": "Deploy to production",
+    "is_done": true,
+    "due_date": "2026-12-06"
+  }
+}
+```
+- **Response**: Status `204 No Content` / `200 OK`.
 
-3. Restart your Redmine application:
-   ```bash
-   sudo systemctl restart redmine
-   # or
-   touch tmp/restart.txt
-   ```
+### 5. Toggle Checklist Done
+- **URL**: `PUT /issues/:issue_id/checklists/:id/done.json`
+- **Response**: Status `200 OK` with updated checklist state.
+
+### 6. Delete Checklist Item
+- **URL**: `DELETE /issues/:issue_id/checklists/:id.json`
+- **Response**: Status `204 No Content` / `200 OK`.
 
 ---
 
@@ -94,20 +148,28 @@ Navigate to **Administration > Roles and permissions** and configure:
 - `Log time`: Allows logging spent time against individual checklist items.
 - `Add issues`: Enables 1-click conversion from checklist item to child issue.
 
-### 2. Block Issue Closure (DoD)
-- Go to **Administration > Plugins > Redmine Issue Checklist Plugin > Configure**.
-- Enable **Block issue closure if checklist items are incomplete**.
-- When active, any attempt to transition an issue to a closed status while tasks are unchecked will halt with an explicit warning listing the remaining tasks.
+### 2. Plugin Configuration Screen
+Navigate to **Administration > Plugins > Redmine Issue Checklist Plugin > Configure** (`/settings/plugin/redmine_issue_checklist`):
 
-### 3. Converting Checklist Tasks to Sub-Issues
-- Click the branch icon (`icon icon-duplicate`) next to any checklist item on an issue.
-- Confirm conversion: a new child issue is created inheriting the parent's Category, Version, Priority, Assignee, and Project.
-- The checklist row updates to show a clickable link to `#SubIssueID`.
-
-### 4. Daily / Team Checklists on My Page
-- On `/my/page`, click **Personalize this page** and add **My Checklists & Daily Routine**.
-- Click **+ Add Daily Task** to add personal or team recurring tasks.
-- If **Reset daily** is checked, items will automatically uncheck themselves on the start of a new calendar day.
+1. **General & Change Rules**:
+   - `Block issue closure if checklist items are incomplete`: Enforces DoD by preventing issue closing when checklist items are pending.
+   - `Save changes to the issue log`: Logs checklist edits and completions in issue journal histories.
+   - `Automatically change the issue done ratio`: Auto-calculates issue `% Done` based on completed checklist items.
+2. **Issue View & Toolbar**:
+   - `Enable bulk mark done / open actions`: Shows "Check all" and "Uncheck all" toolbar buttons.
+   - `Format checklist items in issue PDF exports`: Formats checklist items in native Redmine PDF issue exports.
+3. **Templates & Categories**:
+   - `Display Checklist Templates in Administration menu`: Displays the checklist templates link under Administration.
+   - `Enable category filter on templates list`: Adds a fast category filter dropdown.
+   - `Fallback to new issue page on convert error`: Automatically redirects to new issue form if required project custom fields fail during conversion.
+4. **My Page & Daily Routines**:
+   - `Enable My Checklists widget on My Page`: Allows adding the personal checklist block to `/my/page`.
+   - `Enable My / Team task filters`: Adds tabs to segment personal and team tasks.
+   - `Daily recurring items reset mode`: Choose between automatic page-access reset or background cron.
+   - **Cron Command**:
+     ```bash
+     0 0 * * * cd /data/redmine && bundle exec rake redmine:issue_checklist:reset_daily_routines RAILS_ENV=production
+     ```
 
 ---
 

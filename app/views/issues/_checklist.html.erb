@@ -1,5 +1,6 @@
 <% content_for :header_tags do %>
   <%= javascript_include_tag 'jquery.klass.js', plugin: 'redmine_issue_checklist' %>
+  <%= javascript_include_tag 'jquery.ui.touch-punch.min.js', plugin: 'redmine_issue_checklist' %>
   <%= javascript_include_tag 'issue_checklist.jquery.js', plugin: 'redmine_issue_checklist' %>
   <%= stylesheet_link_tag :issue_checklist, plugin: 'redmine_issue_checklist' %>
 <% end %>
@@ -22,6 +23,14 @@
       </div>
 
       <div class="checklist-actions-area">
+        <% 
+          settings = RedmineIssueChecklist.settings
+          enable_bulk = settings.is_a?(Hash) ? (settings[:enable_bulk_actions].to_s != '0' && settings['enable_bulk_actions'].to_s != '0') : true
+        %>
+        <% if enable_bulk && total_items > 0 && User.current.allowed_to?(:done_checklists, @project) %>
+          <%= link_to l(:button_check_all), issue_bulk_toggle_checklist_path(@issue, status: 'done'), method: :post, remote: true, class: 'checklist-toggle-btn', title: l(:label_checklist_mark_all_done) %>
+          <%= link_to l(:button_uncheck_all), issue_bulk_toggle_checklist_path(@issue, status: 'open'), method: :post, remote: true, class: 'checklist-toggle-btn', title: l(:label_checklist_mark_all_open) %>
+        <% end %>
         <a href="#" id="toggle_completed_checklists_btn" class="checklist-toggle-btn">
           <%= l(:label_checklist_hide_completed) %>
         </a>

@@ -1,24 +1,41 @@
 class IssueChecklistsController < ApplicationController
-  before_action :find_checklist_item, only: [:done, :delete, :update, :destroy, :log_time, :convert_to_issue, :my_done, :my_delete]
-  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :log_time, :convert_to_issue, :index, :create]
+  before_action :find_checklist_item, only: [:show, :done, :delete, :update, :destroy, :log_time, :convert_to_issue, :my_done, :my_delete]
+  before_action :find_issue, only: [:quick_add, :clone_from, :export, :batch_import, :bulk_toggle, :log_time, :convert_to_issue, :index, :create]
 
-  accept_api_auth :index, :create, :show, :update, :destroy, :done
+  accept_api_auth :index, :show, :create, :update, :destroy, :done
 
   def index
     (render_403; return false) unless User.current.allowed_to?(:view_checklists, @project)
 
+    @checklists = @issue.checklist
     respond_to do |format|
+      format.api
       format.json do
-        render json: @issue.checklist.as_json(
-          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id],
-          include: { assigned_to: { only: [:id, :name] } }
-        )
+        render json: {
+          checklists: @checklists.as_json(
+            only: [:id, :issue_id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id, :created_at, :updated_at],
+            include: { assigned_to: { only: [:id, :name] } }
+          )
+        }
       end
-      format.xml do
-        render xml: @issue.checklist.to_xml(
-          only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id]
-        )
+      format.xml { render template: 'issue_checklists/index' }
+    end
+  end
+
+  def show
+    (render_403; return false) unless User.current.allowed_to?(:view_checklists, @project)
+
+    respond_to do |format|
+      format.api
+      format.json do
+        render json: {
+          checklist: @checklist_item.as_json(
+            only: [:id, :issue_id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id, :created_at, :updated_at],
+            include: { assigned_to: { only: [:id, :name] } }
+          )
+        }
       end
+      format.xml { render template: 'issue_checklists/show' }
     end
   end
 
@@ -56,7 +73,58 @@ class IssueChecklistsController < ApplicationController
 
       flash[:notice] = l(:notice_checklist_converted_successfully, id: child_issue.id)
     else
-      flash[:error] = child_issue.errors.full_messages.join(', ')
+      settings = RedmineIssueChecklist.settings
+      should_redirect = settings.is_a?(Hash) && (settings[:sub_issue_redirect_on_error].to_s == '1' || settings['sub_issue_redirect_on_error'].to_s == '1')
+      if should_redirect
+        flash[:warning] = "#{child_issue.errors.full_messages.join(', ')}. Please complete the sub-issue details below."
+        respond_to do |format|
+          format.js { render js: "window.location.href = '#{new_project_issue_path(@project, issue: { parent_issue_id: @issue.id, tracker_id: @issue.tracker_id, subject: @checklist_item.subject.strip, assigned_to_id: @checklist_item.assigned_to_id || @issue.assigned_to_id, due_date: @checklist_item.due_date })}';" }
+          format.html { redirect_to new_project_issue_path(@project, issue: { parent_issue_id: @issue.id, tracker_id: @issue.tracker_id, subject: @checklist_item.subject.strip, assigned_to_id: @checklist_item.assigned_to_id || @issue.assigned_to_id, due_date: @checklist_item.due_date }) }
+        end
+        return
+      else
+        flash[:error] = child_issue.errors.full_messages.join(', ')
+      end
+    end
+
+    respond_to do |format|
+      format.js
+      format.html { redirect_to issue_path(@issue) }
+    end
+  end
+
+  def bulk_toggle
+    (render_403; return false) unless User.current.allowed_to?(:done_checklists, @project)
+
+    target_state = params[:status] == 'done'
+    target_items = @issue.checklist.reject(&:is_section)
+    
+    old_info = @issue.checklist.collect(&:info).join("\n") if RedmineIssueChecklist.settings[:save_log]
+
+    target_items.each do |item|
+      item.update(is_done: target_state)
+    end
+
+    if (Setting.issue_done_ratio == 'issue_field') && RedmineIssueChecklist.settings[:issue_done_ratio]
+      if target_items.any?
+        done_cnt = target_state ? target_items.size : 0
+        @issue.done_ratio = (done_cnt * 10) / target_items.size * 10
+        @issue.save
+      end
+    end
+
+    if RedmineIssueChecklist.settings[:save_log]
+      new_info = @issue.checklist.collect(&:info).join("\n")
+      if new_info != old_info
+        journal = @issue.init_journal(User.current)
+        journal.details << JournalDetail.new(
+          property: 'attr',
+          prop_key: 'checklist',
+          old_value: old_info,
+          value: new_info
+        )
+        journal.save
+      end
     end
 
     respond_to do |format|
@@ -224,15 +292,76 @@ class IssueChecklistsController < ApplicationController
         journal.save
       end
 
+      @checklist_item = item
       respond_to do |format|
-        format.json { render json: item.as_json(only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]), status: :created }
-        format.xml  { render xml: item.to_xml, status: :created }
+        format.api { render :show, status: :created, location: issue_issue_checklist_url(@issue, item) }
+        format.json do
+          render json: {
+            checklist: item.as_json(
+              only: [:id, :issue_id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id, :created_at, :updated_at],
+              include: { assigned_to: { only: [:id, :name] } }
+            )
+          }, status: :created, location: issue_issue_checklist_url(@issue, item)
+        end
+        format.xml  { render template: 'issue_checklists/show', status: :created, location: issue_issue_checklist_url(@issue, item) }
       end
     else
       respond_to do |format|
+        format.api  { render_validation_errors(item) }
         format.json { render json: { errors: item.errors.full_messages }, status: :unprocessable_entity }
         format.xml  { render xml: item.errors, status: :unprocessable_entity }
       end
+    end
+  end
+
+  def update
+    (render_403; return false) unless @checklist_item.editable_by?(User.current)
+
+    old_info = @checklist_item.info
+    checklist_params = params[:checklist] || params
+
+    @checklist_item.subject = checklist_params[:subject] if checklist_params.key?(:subject)
+    @checklist_item.is_section = (checklist_params[:is_section] == '1' || checklist_params[:is_section] == true) if checklist_params.key?(:is_section)
+    @checklist_item.is_done = (checklist_params[:is_done] == '1' || checklist_params[:is_done] == true) if checklist_params.key?(:is_done)
+    @checklist_item.assigned_to_id = checklist_params[:assigned_to_id] if checklist_params.key?(:assigned_to_id)
+    @checklist_item.due_date = checklist_params[:due_date] if checklist_params.key?(:due_date)
+    @checklist_item.position = checklist_params[:position] if checklist_params.key?(:position)
+
+    if @checklist_item.save
+      if @checklist_item.issue.present? && RedmineIssueChecklist.settings[:save_log] && old_info != @checklist_item.info
+        journal = @checklist_item.issue.init_journal(User.current)
+        journal.details << JournalDetail.new(
+          property: 'attr',
+          prop_key: 'checklist',
+          old_value: old_info,
+          value:    @checklist_item.info
+        )
+        journal.save
+      end
+
+      respond_to do |format|
+        format.api  { render_api_ok }
+        format.json { head :no_content }
+        format.xml  { head :no_content }
+      end
+    else
+      respond_to do |format|
+        format.api  { render_validation_errors(@checklist_item) }
+        format.json { render json: { errors: @checklist_item.errors.full_messages }, status: :unprocessable_entity }
+        format.xml  { render xml: @checklist_item.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def destroy
+    (render_403; return false) unless @checklist_item.editable_by?(User.current)
+
+    @checklist_item.destroy
+    respond_to do |format|
+      format.api  { render_api_ok }
+      format.json { head :no_content }
+      format.xml  { head :no_content }
+      format.html { redirect_back(fallback_location: root_path) }
     end
   end
 
@@ -378,7 +507,16 @@ class IssueChecklistsController < ApplicationController
 
     respond_to do |format|
       format.js
-      format.json { render json: @checklist_item.as_json(only: [:id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date]) }
+      format.api { render_api_ok }
+      format.json do
+        render json: {
+          checklist: @checklist_item.as_json(
+            only: [:id, :issue_id, :subject, :is_done, :is_section, :position, :assigned_to_id, :due_date, :converted_issue_id, :created_at, :updated_at],
+            include: { assigned_to: { only: [:id, :name] } }
+          )
+        }
+      end
+      format.xml { render template: 'issue_checklists/show' }
       format.html { redirect_back(fallback_location: root_path) }
     end
   end

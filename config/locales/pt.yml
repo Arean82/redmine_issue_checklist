@@ -1,9 +1,128 @@
-# Portuguese strings go here for Rails i18n
 pt:
   label_issue_checklist_plural: Checklist
   field_checklist: Checklist
   label_checklist_save_log: Salvar as alterações do checklists nos logs da tarefa
-  label_checklist_done_ratio: Automaticamente alterar o percentual de conclusão ao concluir o checklist
+  label_checklist_done_ratio: Automaticamente alterar o percentual de conclusão ao
+    concluir o checklist
   permission_view_checklists: Visualizar itens de checklist
   permission_done_checklists: Alterar o percentual de conclusão baseado no checklist
   permission_edit_checklists: Editar itens do checklist
+  text_checklist_save_log_info: Record all checklist additions, completions, and modifications
+    in issue change history journals.
+  text_checklist_done_ratio_info: Automatically calculate issue % done based on the
+    ratio of completed checklist tasks.
+  label_checklist_block_issue_closure: Block issue closure if checklist items are
+    incomplete
+  text_checklist_block_issue_closure_info: Prevent changing issue status to Closed
+    or Resolved when open checklist items remain.
+  error_cannot_close_issue_with_open_checklists: 'Cannot close issue because the following
+    checklist items are still pending: %{items}'
+  label_checklist_show_in_admin_menu: Display Checklist Templates in Administration
+    menu
+  text_checklist_show_in_admin_menu_info: Show the Checklist Templates link under
+    Administration (/admin).
+  label_checklist_show_in_my_page: Enable My Checklists widget on My Page
+  text_checklist_show_in_my_page_info: Allow users to add a personalized Checklist
+    overview widget on /my/page.
+  label_checklist_settings_section_general: General & Change Rules
+  label_checklist_settings_section_issue_view: Issue View & Toolbar
+  label_checklist_settings_section_templates: Templates & Categories
+  label_checklist_settings_section_my_page: My Page & Daily Routines
+  label_checklist_enable_bulk_actions: Enable bulk mark done / open actions
+  text_checklist_enable_bulk_actions_info: Display "Check all" and "Uncheck all" quick
+    action buttons on issue checklist toolbars.
+  label_checklist_mark_all_done: Check all items
+  label_checklist_mark_all_open: Uncheck all items
+  label_checklist_format_in_pdf: Format checklist items in issue PDF exports
+  text_checklist_format_in_pdf_info: Render checklist items with [X] / [ ] checkmarks
+    and assignees in PDF issue summaries.
+  label_checklist_enable_template_category_filter: Enable category filter on templates
+    list
+  text_checklist_enable_template_category_filter_info: Display a quick filter dropdown
+    on the checklist templates overview page.
+  label_checklist_sub_issue_redirect_on_error: Fallback to new issue page on convert
+    error
+  text_checklist_sub_issue_redirect_on_error_info: If sub-issue creation fails (e.g.
+    required custom fields), redirect to new issue form pre-filled with subject and
+    tracker.
+  label_checklist_my_page_show_team_tabs: Enable My / Team task filters
+  text_checklist_my_page_show_team_tabs_info: Display segmentation tabs for personal
+    vs. team group tasks in the My Page widget.
+  label_checklist_filter_my_tasks: My Tasks
+  label_checklist_filter_team_tasks: Team Tasks
+  label_checklist_daily_reset_mode: Daily recurring items reset mode
+  text_checklist_daily_reset_mode_info: Choose how daily recurring tasks are reset
+    for each new day.
+  label_checklist_reset_mode_on_access: On Page Access (Automatic upon visiting My
+    Page)
+  label_checklist_reset_mode_cron: Background Cron / Rake Task
+  label_checklist_cron_command_title: Daily Midnight Reset Cron Command
+  text_checklist_cron_command_info: 'Add the following line to your crontab to reset
+    daily tasks automatically at midnight:'
+  label_checklist_my_page_title: My Checklists & Daily Routine
+  label_checklist_no_pending_items: No pending checklist items assigned to you.
+  label_checklist_daily_item: Daily Task
+  label_checklist_daily_routine: Daily Routine / Team Tasks
+  label_checklist_issue_tasks: Pending Issue Tasks
+  text_checklist_daily_placeholder: What needs to be done today?
+  label_checklist_for_me: Myself
+  label_checklist_recurring_daily: Reset daily (recurring)
+  label_checklist_daily_badge: Daily
+  button_convert_to_sub_issue: Convert to Sub-Issue
+  text_are_you_sure_convert_checklist: Are you sure you want to convert this checklist
+    item into a sub-issue?
+  label_checklist_converted_badge: Sub-Issue
+  notice_checklist_converted_successfully: 'Checklist item was successfully converted
+    to sub-issue #%{id}.'
+  notice_checklist_converted_journal_note: 'Converted checklist item into sub-issue
+    #%{id}: %{subject}'
+  label_checklist_create_mode: Task Type
+  label_checklist_mode_task: Checklist Item
+  label_checklist_mode_sub_issue: Sub-Issue
+  label_checklist_template_plural: Checklist Templates
+  label_checklist_template_new: New checklist template
+  label_checklist_template_edit: Edit checklist template
+  label_checklist_category_plural: Checklist Categories
+  label_checklist_category_new: New checklist category
+  label_checklist_category_edit: Edit checklist category
+  field_position: Position
+  text_checklist_category_position_info: Display order in dropdown lists
+  label_checklist_apply_template: Apply template
+  label_checklist_template_items: Checklist items
+  text_checklist_template_items_info: One item per line. Prefix with '#' to define
+    a bold section header.
+  text_checklist_tracker_info: Automatically applied to new issues when a tracker
+    is selected and template is set to default.
+  text_checklist_is_default_info: Automatically load this template on new issues
+  text_checklist_is_public_info: Visible to all project members
+  text_checklist_input_placeholder: Add new checklist item...
+  text_checklist_quick_add_placeholder: Quick-add checklist task or section...
+  text_checklist_section_info: Make this item a bold section header
+  label_checklist_is_section: Section
+  label_checklist_hide_completed: Hide completed
+  label_checklist_show_completed: Show completed
+  label_checklist_add_section: Add section
+  label_checklist_import: Import checklist from text file
+  label_checklist_import_preview: Import from file
+  label_checklist_import_modal_title: Import Checklist Items (.txt / .md)
+  text_checklist_import_desc: Select a plain text or Markdown file. Lines starting
+    with
+  button_choose_file: Choose file
+  label_checklist_preview: Parsed items preview
+  label_checklist_import_append: Append to existing items
+  label_checklist_import_replace: Replace existing items
+  label_checklist_item_search: Checklist item contains
+  label_checklist_status: Checklist status
+  label_checklist_status_all_done: All items done
+  label_checklist_status_has_undone: Has open items
+  label_checklist_status_empty: Empty checklist
+  label_checklist_export_md: Export checklist as Markdown
+  label_checklist_clone_from_issue: Copy checklist from issue
+  notice_checklist_cloned_successfully: Checklist items copied successfully.
+  error_no_checklist_to_clone: Source issue does not have any checklist items.
+  notice_time_logged_successfully: '%{hours} hours logged successfully for this checklist
+    task.'
+  error_invalid_spent_hours: Please enter valid hours to log.
+  my:
+    blocks:
+      issue_checklists: My Checklists & Daily Routine
