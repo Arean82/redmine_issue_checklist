@@ -13,6 +13,8 @@ en:
   label_checklist_show_in_my_page: Enable My Checklists widget on My Page
   text_checklist_show_in_my_page_info: Allow users to add a personalized Checklist overview widget on /my/page.
   label_checklist_settings_section_general: General & Change Rules
+  label_checklist_sync_sub_issue_status: Bidirectional Sub-Issue status synchronization
+  text_checklist_sync_sub_issue_status_info: Automatically update the checklist task state when its converted child sub-issue is closed or reopened.
   label_checklist_settings_section_issue_view: Issue View & Toolbar
   label_checklist_settings_section_templates: Templates & Categories
   label_checklist_settings_section_my_page: My Page & Daily Routines

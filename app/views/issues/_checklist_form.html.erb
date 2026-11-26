@@ -14,7 +14,7 @@
             <% available_templates.group_by(&:category).each do |cat, tpls| %>
               <optgroup label="<%= cat ? cat.name : l(:label_other) %>">
                 <% tpls.each do |tpl| %>
-                  <option value="<%= tpl.id %>" data-items="<%= tpl.items.to_json %>"><%= tpl.name %></option>
+                  <option value="<%= tpl.id %>" data-items="<%= tpl.items.to_json %>" data-tracker-id="<%= tpl.tracker_id %>" data-is-default="<%= tpl.is_default? %>"><%= tpl.name %></option>
                 <% end %>
               </optgroup>
             <% end %>

@@ -4,6 +4,13 @@
   <legend><%= l(:label_checklist_settings_section_general) %></legend>
 
   <p>
+    <label><%= l(:label_checklist_sync_sub_issue_status) %></label>
+    <%= hidden_field_tag 'settings[sync_sub_issue_status]', 0 %>
+    <%= check_box_tag 'settings[sync_sub_issue_status]', 1, @settings[:sync_sub_issue_status] != '0' && @settings[:sync_sub_issue_status] != false %>
+    <em class="info"><%= l(:text_checklist_sync_sub_issue_status_info) %></em>
+  </p>
+
+  <p>
     <label><%= l(:label_checklist_block_issue_closure) %></label>
     <%= hidden_field_tag 'settings[block_issue_closure]', 0 %>
     <%= check_box_tag 'settings[block_issue_closure]', 1, @settings[:block_issue_closure] == '1' || @settings[:block_issue_closure] == true %>

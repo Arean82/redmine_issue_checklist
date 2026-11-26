@@ -18,8 +18,11 @@ Developed and maintained by **Arean Narrayan** ([@Arean82](https://github.com/Ar
   - 1-click promotion icon next to any checklist item converts it into a formal child issue.
   - Automatically inherits parent issue properties: Project, Tracker, Category, Target Version, Assignee, Priority, and Due Date.
   - Replaces the checklist item with a clickable `#ID` link in the checklist and logs a note in the issue journal.
+  - **Bidirectional Status Sync**: When the child sub-issue is marked Closed (or reopened), the corresponding parent checklist task automatically syncs its completed state (`[X]` / `[ ]`) and recalculates the parent's `% Done` ratio.
   - If project validation rules require additional custom fields, automatically redirects to the new issue form pre-filled.
   - Quick-add bar also offers a direct `[Sub-Issue]` option.
+- **Dynamic Tracker Checklist Autoload**:
+  - Selecting or changing the **Tracker** on the new issue form dynamically populates the designated default template for that tracker via AJAX before form submission.
 - **Standalone Daily & Team Checklists on My Page**:
   - Addable to `/my/page` via the *Add block...* dropdown.
   - Two integrated views: **Daily Routine / Team Tasks** (standalone recurring items with auto-daily uncheck) and **Pending Issue Tasks**.
@@ -152,6 +155,7 @@ Navigate to **Administration > Roles and permissions** and configure:
 Navigate to **Administration > Plugins > Redmine Issue Checklist Plugin > Configure** (`/settings/plugin/redmine_issue_checklist`):
 
 1. **General & Change Rules**:
+   - `Bidirectional Sub-Issue status synchronization`: Automatically checks/unchecks the parent checklist item when child sub-issue is closed/reopened.
    - `Block issue closure if checklist items are incomplete`: Enforces DoD by preventing issue closing when checklist items are pending.
    - `Save changes to the issue log`: Logs checklist edits and completions in issue journal histories.
    - `Automatically change the issue done ratio`: Auto-calculates issue `% Done` based on completed checklist items.

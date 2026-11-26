@@ -294,6 +294,29 @@ Redmine.IssueChecklist = jQuery.klass({
       this.templateBtn.click($.proxy(this.applyTemplate, this));
     }
     this.input.keypress($.proxy(this.onKeyPress, this));
+
+    // Dynamic Tracker Checklist Autoload on new issue form
+    var self = this;
+    $(document).off('change.checklist_tracker', '#issue_tracker_id').on('change.checklist_tracker', '#issue_tracker_id', function() {
+      var trackerId = $(this).val();
+      if (!trackerId) return;
+
+      var currentItems = $('#checklist_form_items .checklist-item');
+      // Only auto-populate if user has not yet customized the checklist
+      if (currentItems.length === 0) {
+        var opt = self.templateSelector.find('option[data-tracker-id="' + trackerId + '"][data-is-default="true"]').first();
+        if (opt.length > 0) {
+          var rawItems = opt.data('items');
+          var items = typeof rawItems === 'string' ? JSON.parse(rawItems) : rawItems;
+          if (items && items.length > 0) {
+            for (var i = 0; i < items.length; i++) {
+              var it = items[i];
+              self.addChecklistItem(it.subject, it.is_done, null, it.is_section);
+            }
+          }
+        }
+      }
+    });
   },
 
   readChecklist: function(event) {

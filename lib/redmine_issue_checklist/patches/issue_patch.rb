@@ -10,6 +10,7 @@ module RedmineIssueChecklist
           alias_method :copy_from, :copy_from_with_checklist
 
           validate :validate_checklist_completion_before_closing
+          after_save :sync_converted_checklist_parent_item
         end
       end
 
@@ -105,6 +106,26 @@ module RedmineIssueChecklist
             old_value: old_checklist,
             value:     new_checklist
           )
+        end
+      end
+
+      # Bidirectional status sync: when sub-issue status changes, sync the parent checklist item
+      def sync_converted_checklist_parent_item
+        return unless saved_change_to_status_id? || saved_change_to_closed_on?
+
+        settings = RedmineIssueChecklist.settings
+        sync_enabled = settings.is_a?(Hash) ? (settings[:sync_sub_issue_status].to_s != '0' && settings['sync_sub_issue_status'].to_s != '0') : true
+        return unless sync_enabled
+
+        parent_checklist_items = IssueChecklist.where(converted_issue_id: id)
+        return if parent_checklist_items.empty?
+
+        is_now_closed = closed?
+        parent_checklist_items.each do |item|
+          if item.is_done != is_now_closed
+            item.update_columns(is_done: is_now_closed)
+            item.recalc_issue_done_ratio if item.issue.present?
+          end
         end
       end
     end

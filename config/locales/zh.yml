@@ -125,3 +125,6 @@ zh:
   my:
     blocks:
       issue_checklists: My Checklists & Daily Routine
+  label_checklist_sync_sub_issue_status: Bidirectional Sub-Issue status synchronization
+  text_checklist_sync_sub_issue_status_info: Automatically update the checklist task
+    state when its converted child sub-issue is closed or reopened.
