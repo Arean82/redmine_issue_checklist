@@ -1,4 +1,7 @@
 class ChecklistTemplatesController < ApplicationController
+  layout :determine_layout
+  menu_item :checklist_templates
+
   before_action :find_project, only: [:index, :new, :create]
   before_action :find_template, only: [:edit, :update, :destroy]
 
@@ -80,5 +83,9 @@ class ChecklistTemplatesController < ApplicationController
     else
       checklist_templates_path
     end
+  end
+
+  def determine_layout
+    @project ? 'base' : 'admin'
   end
 end

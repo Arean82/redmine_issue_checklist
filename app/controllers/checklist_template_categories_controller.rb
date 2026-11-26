@@ -1,4 +1,7 @@
 class ChecklistTemplateCategoriesController < ApplicationController
+  layout 'admin'
+  menu_item :checklist_templates
+
   before_action :require_admin
   before_action :find_category, only: [:edit, :update, :destroy]
 
